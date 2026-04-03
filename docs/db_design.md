@@ -11,7 +11,7 @@
 | `email` | String | Unique, Not Null | 電子郵件 (登入帳號) | |
 | `hashedPassword` | String | Not Null | 加密後的密碼 | |
 | `name` | String | | 用戶全名 | |
-| `systemRole` | Enum | ADMIN, LANDLORD, MANAGER, TENANT | 全域系統角色 | |
+| `systemRole` | Enum | ADMIN, LANDLORD, MANAGER, TENANT | 全域系統角色 (預設 TENANT) | |
 | `createdAt` | DateTime | Default(now()) | 帳號建立時間 | |
 | `updatedAt` | DateTime | UpdatedAt | 帳號更新時間 | |
 
@@ -34,6 +34,8 @@
 | `userId` | UUID | FK, Not Null | 用戶 ID | User.id |
 | `organizationId` | UUID | FK, Not Null | 組織 ID | Organization.id |
 | `memberRole` | Enum | OWNER, MANAGER | 在組織內的角色權限 | |
+
+> **約束**：Unique(userId, organizationId)
 
 ---
 
@@ -75,7 +77,7 @@
 | `propertyId` | UUID | FK, Not Null | 租賃標的房源 | Property.id |
 | `tenantId` | UUID | FK, Not Null | 簽約房客 (關聯 User 表) | User.id |
 | `tenantName` | String | Not Null | **房客姓名** | |
-| `gender` | Enum | Not Null | **性別** (MALE, FEMALE, OTHER) | |
+| `gender` | String | Not Null | **性別** (MALE, FEMALE, OTHER) | |
 | `phone` | String | Not Null | **電話** | |
 | `contactAddress` | String | Not Null | **聯絡地址** | |
 | `startDate` | DateTime | Not Null | **起租日** (預設為新建資料日) | |
@@ -83,12 +85,12 @@
 | `monthlyRent` | Decimal | Not Null | **月租金** (初始值自帶房源預設租金) | |
 | `deposit` | Decimal | Not Null | **押金** (初始值自帶房源預設押金) | |
 | `signingDate` | DateTime | Not Null | **簽約日** (預設為新建資料日) | |
-| `paymentCycle` | Enum | Not Null | **繳租週期** (MONTHLY, QUARTERLY, YEARLY; 預設 MONTHLY) | |
-| `electricityRate` | Decimal | | 電費單價 (元/度，初始值自帶房源預設) | |
+| `paymentCycle` | Enum | Default(MONTHLY) | **繳租週期** (MONTHLY, QUARTERLY, YEARLY) | |
+| `electricityRate` | Decimal | Nullable | 電費單價 (元/度) | |
 | `startElectricityMeter`| Decimal | Default(0) | 起始電表度數 | |
-| `waterRate` | Decimal | | 水費單價 (初始值自帶房源預設) | |
+| `waterRate` | Decimal | Nullable | 水費單價 | |
 | `startWaterMeter` | Decimal | Default(0) | 起始水表度數 | |
-| `managementFee` | Decimal | | 管理費 (初始值自帶房源預設管理費) | |
+| `managementFee` | Decimal | Nullable | 管理費 | |
 | `status` | Enum | OCCUPIED, VACATED | **狀態管理** (承租中/退租; 預設承租中) | |
 | `createdAt` | DateTime | Default(now()) | 記錄建立時間 | |
 
@@ -136,12 +138,12 @@
 | `periodEnd` | DateTime | Not Null | 帳單期間-止 | |
 | `monthlyRent` | Decimal | Not Null | 該期租金 (依租約) | |
 | `managementFee` | Decimal | Not Null | 該期管理費 (依租約) | |
-| `electricityRate` | Decimal | | 電費單價 (依租約) | |
-| `startElectricityMeter`| Decimal | | 當期起始電表度數 (前次當期度數) | |
-| `endElectricityMeter` | Decimal | | 當期結束電表度數 (房客輸入) | |
-| `waterRate` | Decimal | | 水費單價 | |
-| `startWaterMeter` | Decimal | | 當期起始水表度數 | |
-| `endWaterMeter` | Decimal | | 當期結束水表度數 (房客輸入) | |
+| `electricityRate` | Decimal | Nullable | 電費單價 (依租約) | |
+| `startElectricityMeter`| Decimal | Nullable | 當期起始電表度數 (前次當期度數) | |
+| `endElectricityMeter` | Decimal | Nullable | 當期結束電表度數 (房客輸入) | |
+| `waterRate` | Decimal | Nullable | 水費單價 | |
+| `startWaterMeter` | Decimal | Nullable | 當期起始水表度數 | |
+| `endWaterMeter` | Decimal | Nullable | 當期結束水表度數 (房客輸入) | |
 | `previousUnpaid` | Decimal | Default(0) | 前期未繳金額 | |
 | `totalAmount` | Decimal | | 應收總金額 (系統自動計算) | |
 | `status` | Enum | PENDING_TENANT, PENDING_APPROVAL, COMPLETED | 帳單狀態 | |
@@ -155,8 +157,8 @@
 | `amount` | Decimal | Not Null | **匯款金額** | |
 | `paymentDate` | DateTime | Not Null | **匯款日期** | |
 | `accountLastThree` | String | Not Null | **帳號末三碼** | |
-| `receiptPhotoUrl` | String | | 上傳附圖 (可選) | |
-| `landlordRemark` | String | | 房東/代管 備註 | |
+| `receiptPhotoUrl` | String | Nullable | 上傳附圖 (可選) | |
+| `landlordRemark` | String | Nullable | 房東/代管 備註 | |
 | `createdAt` | DateTime | Default(now()) | 提交時間 | |
 
 ---
@@ -170,8 +172,8 @@
 | `contractId` | UUID | FK, Not Null | 關連租約 (確認報修房客) | Contract.id |
 | `item` | String | Not Null | **修繕項目** (設備名稱或自行輸入) | |
 | `description` | String | Not Null | **問題描述** | |
-| `photos` | String[] | | 問題照片 URL 列表 | |
+| `photos` | String[] | | 問題照片 URL 列表 (Cloudinary) | |
 | `status` | Enum | PENDING, PROCESSING, COMPLETED, CANCELLED | **狀態** (預設 PENDING) | |
-| `landlordReply` | String | | **房東/代管 回覆** | |
+| `landlordReply` | String | Nullable | **房東/代管 回覆** | |
 | `createdAt` | DateTime | Default(now()) | 建立時間 | |
 | `updatedAt` | DateTime | UpdatedAt | 最後更新時間 | |

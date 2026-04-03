@@ -41,3 +41,5 @@
 - [x] 修復房東控制台功能按鈕無反應的問題 (2026-04-03)
 - [x] 修復 Cloudinary 前端環境變數缺失引起的 CldUploadWidget 崩潰 bug (2026-04-03)
 - [x] 檢視項目現況並優化 .gitignore 配置 (2026-04-03)
+- [x] 更新 `docs\db_design.md` 及 `docs\ui_design_spec.md` 設計文檔 (2026-04-03)
+- [x] 根據 `spec.md` 規範更新 `docs\roles.md` 角色權限文檔 (2026-04-03)

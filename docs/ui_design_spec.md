@@ -95,10 +95,12 @@
 ## 5. 技術實作路徑 (Technical Roadmap)
 
 ### 5.1 元件庫選型
+- **Frontend**: `Next.js 14+ (App Router)`, `Tailwind CSS`.
 - **UI Framework**: `shadcn/ui` (基於 Radix UI)。
 - **Icons**: `Lucide React`。
 - **Charts**: `Recharts`。
 - **Animations**: `Framer Motion` (用於微交互，如頁面切換、抽屜滑出)。
+- **Form Management**: `React Hook Form` + `Zod`.
 
 ### 5.2 Responsive UML (響應式組件邏輯)
 ```mermaid
@@ -114,7 +116,23 @@ graph TD
 ```
 
 ## 6. 使用者體驗細節 (UX Micromoments)
-- **Skeleton Loading**: 取代傳統 Loading Spinner，提升感知速度。
+- **Skeleton Loading**: 使用 `Skeleton` 元件取代傳統 Loading Spinner，提升感知速度。
 - **Optimistic UI**: 提交報修或上傳憑證後立即顯示「處理中」狀態。
 - **Pull-to-refresh**: 行動端下拉更新資料。
-- **Empty States**: 沒資料時顯示精美的插畫與引導按鈕 (Empty States with CTA)。
+- **Empty States**: 沒資料時顯示 `EmptyState` 元件，包含引導按鈕。
+- **Toast Notifications**: 使用 `Sonner` 或 `shadcn/ui toast` 提示操作結果。
+
+## 7. 狀態顏色對照表 (Status Color Mapping)
+
+| 模組 | 狀態 (Enum) | 顏色變數 | 說明 |
+| :--- | :--- | :--- | :--- |
+| **Property** | `AVAILABLE` | `Success` | 待租中 |
+| | `RENTED` | `Primary` | 已出租 |
+| | `UNDER_MAINTENANCE`| `Danger` | 維修中不可租 |
+| **Billing** | `PENDING_TENANT` | `Accent` | 待房客填寫度數/上傳 |
+| | `PENDING_APPROVAL` | `Blue-500` | 待房東審核 |
+| | `COMPLETED` | `Success` | 已結案 |
+| **Maintenance**| `PENDING` | `Slate-400` | 已報修待處理 |
+| | `PROCESSING` | `Blue-500` | 進行中 |
+| | `COMPLETED` | `Success` | 已修復 |
+| | `CANCELLED` | `Slate-200` | 已取消 |
