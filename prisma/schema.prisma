@@ -1,0 +1,208 @@
+// Prisma Schema for PrimeStay
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// --- Enums ---
+
+enum SystemRole {
+  ADMIN
+  LANDLORD
+  MANAGER
+  TENANT
+}
+
+enum OrgMemberRole {
+  OWNER
+  MANAGER
+}
+
+enum PropertyStatus {
+  AVAILABLE
+  RENTED
+  UNDER_MAINTENANCE
+}
+
+enum ContractStatus {
+  OCCUPIED
+  VACATED
+}
+
+enum PaymentCycle {
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+enum BillingStatus {
+  PENDING_TENANT
+  PENDING_APPROVAL
+  COMPLETED
+}
+
+enum MaintenanceStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  CANCELLED
+}
+
+// --- Models ---
+
+model User {
+  id             String             @id @default(uuid())
+  email          String             @unique
+  hashedPassword String
+  name           String?
+  systemRole     SystemRole         @default(TENANT)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  
+  organizations     Organization[]    @relation("OrgOwner")
+  userOrganizations UserOrganization[]
+  contracts         Contract[]        @relation("TenantContracts")
+  invitationsSent   Invitation[]      @relation("Inviter")
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  ownerId   String
+  createdAt DateTime @default(now())
+
+  owner             User               @relation("OrgOwner", fields: [ownerId], references: [id])
+  members           UserOrganization[]
+  properties        Property[]
+  invitations       Invitation[]
+}
+
+model UserOrganization {
+  id             String        @id @default(uuid())
+  userId         String
+  organizationId String
+  memberRole     OrgMemberRole
+
+  user         User         @relation(fields: [userId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@unique([userId, organizationId])
+}
+
+model Property {
+  id                    String         @id @default(uuid())
+  organizationId        String
+  address               String
+  roomNumber            String
+  type                  String
+  size                  Decimal
+  photos                String[]       // Cloudinary URLs
+  defaultRent           Decimal
+  defaultDeposit        Decimal
+  defaultElectricityFee Decimal        @default(0)
+  defaultWaterFee       Decimal        @default(0)
+  defaultManagementFee  Decimal        @default(0)
+  equipmentList         Json?          // List of equipment
+  status                PropertyStatus @default(AVAILABLE)
+  createdAt             DateTime       @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  contracts    Contract[]
+  invitations  Invitation[]
+}
+
+model Contract {
+  id                    String         @id @default(uuid())
+  propertyId            String
+  tenantId              String
+  tenantName            String
+  gender                String
+  phone                 String
+  contactAddress        String
+  startDate             DateTime       @default(now())
+  endDate               DateTime
+  monthlyRent           Decimal
+  deposit               Decimal
+  signingDate           DateTime       @default(now())
+  paymentCycle          PaymentCycle   @default(MONTHLY)
+  electricityRate       Decimal?
+  startElectricityMeter Decimal        @default(0)
+  waterRate             Decimal?
+  startWaterMeter       Decimal        @default(0)
+  managementFee         Decimal?
+  status                ContractStatus @default(OCCUPIED)
+  createdAt             DateTime       @default(now())
+
+  property     Property      @relation(fields: [propertyId], references: [id])
+  tenant       User          @relation("TenantContracts", fields: [tenantId], references: [id])
+  billings     Billing[]
+  maintenances Maintenance[]
+}
+
+model Invitation {
+  id             String     @id @default(uuid())
+  code           String     @unique
+  inviterId      String
+  organizationId String
+  propertyId     String?
+  targetRole     SystemRole
+  isUsed         Boolean    @default(false)
+  expiresAt      DateTime
+
+  inviter      User         @relation("Inviter", fields: [inviterId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+  property     Property?    @relation(fields: [propertyId], references: [id])
+}
+
+model Billing {
+  id                    String        @id @default(uuid())
+  contractId            String
+  periodStart           DateTime
+  periodEnd             DateTime
+  monthlyRent           Decimal
+  managementFee         Decimal
+  electricityRate       Decimal?
+  startElectricityMeter Decimal?
+  endElectricityMeter   Decimal?
+  waterRate             Decimal?
+  startWaterMeter       Decimal?
+  endWaterMeter         Decimal?
+  previousUnpaid        Decimal       @default(0)
+  totalAmount           Decimal?
+  status                BillingStatus @default(PENDING_TENANT)
+  createdAt             DateTime      @default(now())
+
+  contract Contract @relation(fields: [contractId], references: [id])
+  payments Payment[]
+}
+
+model Payment {
+  id               String   @id @default(uuid())
+  billingId        String
+  amount           Decimal
+  paymentDate      DateTime
+  accountLastThree String
+  receiptPhotoUrl  String?
+  landlordRemark   String?
+  createdAt        DateTime @default(now())
+
+  billing Billing @relation(fields: [billingId], references: [id])
+}
+
+model Maintenance {
+  id            String            @id @default(uuid())
+  contractId    String
+  item          String
+  description   String
+  photos        String[]          // Cloudinary URLs
+  status        MaintenanceStatus @default(PENDING)
+  landlordReply String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  contract Contract @relation(fields: [contractId], references: [id])
+}
