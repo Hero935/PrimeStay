@@ -1,5 +1,14 @@
 # 🏠 高端租屋代管平台系統規格文件 (spec.md)
 
+## UI/UX 設計理念
+本系統採用「高端、專業、行動優先」的設計策略，並規範於 [`docs/ui_design_spec.md`](docs/ui_design_spec.md)。
+- **PC 端**: 提供響應式側邊導航 (Collapsible Sidebar) 與全寬數據看板。
+- **行動端**: 採用 PWA 風格底部導航 (Bottom Navigation)，整合 iOS/Android 操作手感。
+- **組件庫**: 全面整合 `shadcn/ui` (Radix UI)，確保無障礙存取與組件一致性。
+- **視覺規範**:
+  - 主色調：Slate-900 (文字), Blue-600 (主要操作)。
+  - 背景：Slate-50 搭配微透明毛玻璃效果 (Backdrop Blur)。
+
 ## 1. 系統概述
 本系統旨在提供高端租屋代管服務，支援多組織（Organization）架構，並針對四種角色（平台管理員、房東、代管人員、租客）提供嚴格的權限控管與自動化流程。
 

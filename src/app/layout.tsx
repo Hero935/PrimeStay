@@ -1,4 +1,5 @@
 import { AuthProvider } from "@/components/providers/SessionProvider";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import type { Metadata } from "next";
 import { Inter, Geist } from "next/font/google";
 import "./globals.css";
@@ -25,7 +26,9 @@ export default function RootLayout({
   return (
     <html lang="zh-TW" className={cn("font-sans", geist.variable)}>
       <body className={inter.className}>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <TooltipProvider>{children}</TooltipProvider>
+        </AuthProvider>
       </body>
     </html>
   );

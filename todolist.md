@@ -40,3 +40,4 @@
 ## 8. 🐛 Bug Fixes & Improvements
 - [x] 修復房東控制台功能按鈕無反應的問題 (2026-04-03)
 - [x] 修復 Cloudinary 前端環境變數缺失引起的 CldUploadWidget 崩潰 bug (2026-04-03)
+- [x] 檢視項目現況並優化 .gitignore 配置 (2026-04-03)
