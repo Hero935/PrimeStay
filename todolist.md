@@ -63,3 +63,5 @@
 - [x] 修復房東房源管理：更新「新增房源」表單欄位以符合 `db_design.md` (2026-04-04)
 - [x] 實作房源編輯與刪除功能：包含前端 UI 邏輯與後端 `api/properties/[id]` 介面 (2026-04-04)
 - [x] 修復房源詳情 API：處理 Next.js 16 非同步 `params` 導致的 500 錯誤 (2026-04-04)
+- [x] 修復 Cloudinary 上傳失敗問題：將 `uploadPreset` 同時作為屬性與 `options` 參數傳遞，並加強錯誤診斷日誌 (2026-04-04)
+- [x] 修復房源指派 API：處理 Next.js 15+ 非同步 `params` 並解決 Prisma `auditLog` 類型缺失問題 (2026-04-04)

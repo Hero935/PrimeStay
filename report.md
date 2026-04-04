@@ -23,6 +23,7 @@
 | T14 | 文檔與規約同步 | ✅ 已完成 | 確保設計文檔 (DB, UI, Roles) 與現有系統實現 `spec.md` 完全同步。 |
 | T15 | 系統管理員 (ADMIN) 完整功能實作 | ✅ 已完成 | 包含多視角側邊欄、全平台儀表板、組織總覽、邀請記錄追蹤及用戶帳號狀態管理（停權/恢復）。 |
 | T16 | 房源管理 404 修復與 CRUD 完整化 | ✅ 已完成 | 實作 `/api/properties/[id]` 介面處理 `PUT` 與 `DELETE` 請求。 |
+| T17 | Cloudinary 上傳優化與安全管理 | ✅ 已完成 | 實作 Signed Upload、智慧壓縮、圖片燈箱預覽與雲端同步刪除功能。 |
 
 ## 3. 技術總結
 - **Tailwind CSS v4 升級**: 成功處理 v4 移除了內建 PostCSS 支援的變更，透過整合 `@tailwindcss/postcss` 並採用新的 `@import "tailwindcss";` 語法確保樣式編譯正常。
@@ -46,6 +47,10 @@
 - 2026-04-04: 修復 Cloudinary 圖片上傳 400 錯誤。
 - 2026-04-04: 修復房東房源管理 404 錯誤，實作完整的房源 CRUD API 與押金預算邏輯。
 - 2026-04-04: 修復 Next.js 16 動態路由引發的 500 錯誤。將 `/api/properties/[id]` 中的 `params` 改為非同步處理 (`await params`)。
+- 2026-04-04: 實作 Cloudinary Signed Upload 安全上傳機制，解決了「Upload preset not found」與權限錯誤。
+- 2026-04-04: 新增 Cloudinary 雲端同步刪除功能。建立 `/api/cloudinary` DELETE 介面，支援單張圖片移除與房源刪除時的自動清理。
+- 2026-04-04: 優化圖片展示 UI。實作 `q_auto` 智慧壓縮、`authenticated` 存取等級以及圖片點擊放大 (Lightbox) 燈箱效果。
+- 2026-04-04: 修復房源指派 API 500 錯誤。處理 Next.js 15+ 非同步 `params` 傳入，並解決 Prisma `auditLog` 類型推導缺失導致的編譯失敗。
 
 ---
 報告人：Antigravity AI

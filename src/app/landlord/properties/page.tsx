@@ -5,7 +5,7 @@ import { CldUploadWidget } from "next-cloudinary";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Home, MapPin, Square, Image as ImageIcon } from "lucide-react";
+import { Plus, Home, MapPin, Square, X, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { ManagerAssignment } from "./ManagerAssignment";
 
@@ -32,8 +32,59 @@ export default function PropertiesPage() {
   const [photos, setPhotos] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 編輯模式狀態
+  /**
+   * 從 URL 中提取 Cloudinary 的 public_id
+   * @param url Cloudinary 圖片 URL
+   * @returns public_id 字串
+   */
+  const getPublicIdFromUrl = (url: string) => {
+    try {
+      // 格式通常為: .../upload/v12345678/folder/public_id.jpg
+      const parts = url.split("/");
+      const uploadIndex = parts.indexOf("upload");
+      if (uploadIndex === -1) return null;
+      
+      // 取得 upload/ 之後的所有部分
+      const publicIdPath = parts.slice(uploadIndex + 2).join("/"); // 跳過 upload 與 version (v...)
+      // 找到最後一個點之前的所有部分，以處理 public_id 中包含點號的情況
+      const lastDotIndex = publicIdPath.lastIndexOf(".");
+      return lastDotIndex !== -1 ? publicIdPath.substring(0, lastDotIndex) : publicIdPath;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  /**
+   * 移除照片並從 Cloudinary 伺服器同步刪除
+   * @param index 要移除的照片索引
+   */
+  const handleRemovePhoto = async (index: number) => {
+    const photoUrl = photos[index];
+    const publicId = getPublicIdFromUrl(photoUrl);
+
+    if (publicId) {
+      try {
+        // 呼叫 API 刪除雲端檔案
+        const res = await fetch(`/api/cloudinary?publicId=${encodeURIComponent(publicId)}`, {
+          method: "DELETE",
+        });
+        
+        if (res.ok) {
+          toast.success("雲端檔案已移除");
+        } else {
+          console.warn("雲端檔案移除失敗，可能已被刪除或權限不足");
+        }
+      } catch (err) {
+        console.error("呼叫 Cloudinary 刪除 API 失敗:", err);
+      }
+    }
+
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // 編輯模式與預覽狀態
   const [editingPropertyId, setEditingPropertyId] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
     fetchOrganizations();
@@ -117,15 +168,26 @@ export default function PropertiesPage() {
   };
 
   /**
-   * 刪除房源
+   * 刪除房源及其所有 Cloudinary 圖片
    */
-  const handleDelete = async (id: string) => {
-    if (!confirm("確定要刪除此房源嗎？這將無法復原。")) return;
+  const handleDelete = async (property: any) => {
+    if (!confirm(`確定要刪除「${property.address}」房源嗎？這將會同步刪除雲端圖片。`)) return;
     
     try {
-      const res = await fetch(`/api/properties/${id}`, { method: "DELETE" });
+      // 1. 先刪除 Cloudinary 上的所有圖片
+      if (property.photos && property.photos.length > 0) {
+        for (const url of property.photos) {
+          const publicId = getPublicIdFromUrl(url);
+          if (publicId) {
+            await fetch(`/api/cloudinary?publicId=${encodeURIComponent(publicId)}`, { method: "DELETE" });
+          }
+        }
+      }
+
+      // 2. 刪除資料庫紀錄
+      const res = await fetch(`/api/properties/${property.id}`, { method: "DELETE" });
       if (res.ok) {
-        toast.success("房源已刪除");
+        toast.success("房源及其雲端檔案已移除");
         fetchProperties(selectedOrgId);
       } else {
         const data = await res.json();
@@ -325,20 +387,41 @@ export default function PropertiesPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">上傳物件封面</label>
+                  <label className="text-xs font-semibold text-slate-500 uppercase block mb-1">
+                    上傳物件封面
+                    <span className="ml-2 text-[8px] text-slate-400 normal-case">
+                      (Preset: {process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "ml_default"})
+                    </span>
+                  </label>
                   <CldUploadWidget
-                    uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "primestay_preset"}
+                    signatureEndpoint="/api/sign-cloudinary-params"
                     onSuccess={(result: any) => {
+                      /**
+                       * 上傳成功後的處理函式
+                       * @param result Cloudinary 回傳的結果物件
+                       */
                       setPhotos((prev) => [...prev, result.info.secure_url]);
                     }}
                     onError={(error: any) => {
-                      console.error("Cloudinary Upload Error:", error);
-                      toast.error("圖片上傳失敗");
+                      /**
+                       * 上傳失敗後的處理函式
+                       * @param error 錯誤資訊
+                       */
+                      console.error("Cloudinary Upload Error詳細資訊:", error);
+                      toast.error(`圖片上傳失敗: ${error?.statusText || '未知錯誤'}`);
                     }}
                     options={{
                       cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+                      apiKey: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
+                      uploadPreset: process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "ml_default",
+                      sources: ["local", "url", "camera"],
+                      multiple: true,
                       maxFiles: 5,
                       clientAllowedFormats: ["png", "jpg", "jpeg"],
+                      // @ts-ignore - Cloudinary native options for compression and security
+                      transformation: [{ quality: "auto", fetch_format: "auto" }],
+                      // @ts-ignore - Restricted access mode
+                      access_mode: "authenticated",
                     }}
                   >
                     {({ open }) => (
@@ -355,8 +438,21 @@ export default function PropertiesPage() {
                   </CldUploadWidget>
                   <div className="grid grid-cols-4 gap-2">
                     {photos.map((url, idx) => (
-                      <div key={idx} className="aspect-square rounded-md overflow-hidden border">
-                        <img src={url} alt="Room" className="w-full h-full object-cover" />
+                      <div key={idx} className="relative group aspect-square rounded-md overflow-hidden border">
+                        <img
+                          src={url}
+                          alt="Room"
+                          className="w-full h-full object-cover cursor-zoom-in"
+                          onClick={() => setPreviewUrl(url)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemovePhoto(idx)}
+                          className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                          title="移除圖片"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
                       </div>
                     ))}
                   </div>
@@ -406,7 +502,12 @@ export default function PropertiesPage() {
                   <div className="flex h-36">
                     <div className="w-1/3 bg-slate-100 relative">
                       {p.photos[0] ? (
-                        <img src={p.photos[0]} alt="Room" className="w-full h-full object-cover" />
+                        <img
+                          src={p.photos[0]}
+                          alt="Room"
+                          className="w-full h-full object-cover cursor-zoom-in"
+                          onClick={() => setPreviewUrl(p.photos[0])}
+                        />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-slate-300">
                            <ImageIcon />
@@ -473,6 +574,29 @@ export default function PropertiesPage() {
           )}
         </div>
       </div>
+
+      {/* 圖片放大展示 Modal */}
+      {previewUrl && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setPreviewUrl(null)}
+        >
+          <div className="relative max-w-5xl w-full h-full flex items-center justify-center">
+            <button
+              className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white p-2 rounded-full transition-colors z-10"
+              onClick={() => setPreviewUrl(null)}
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <img
+              src={previewUrl}
+              alt="Preview"
+              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-300"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -10,10 +10,10 @@ import { NextResponse } from "next/server";
  */
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getServerSession(authOptions);
-  const { id: propertyId } = params;
+  const { id: propertyId } = await params;
 
   // 權限驗證：僅允許 LANDLORD
   if (!session || (session.user as any).role !== "LANDLORD") {
@@ -51,13 +51,13 @@ export async function PATCH(
     }
 
     // 更新房源管理員
-    const updatedProperty = await prisma.property.update({
+    const updatedProperty = await (prisma.property as any).update({
       where: { id: propertyId },
       data: { managerId: managerId || null },
     });
 
     // 記錄 Audit Log
-    await prisma.auditLog.create({
+    await (prisma as any).auditLog.create({
       data: {
         userId: landlordId,
         organizationId: property.organizationId,

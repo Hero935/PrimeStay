@@ -137,13 +137,24 @@ export default function LandlordSettingsPage() {
             
             <CldUploadWidget
               uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "primestay_preset"}
-              onSuccess={(result: any) => setLogoUrl(result.info.secure_url)}
+              onSuccess={(result: any) => {
+                /**
+                 * 標誌圖片上傳成功
+                 * @param result Cloudinary 傳回結果
+                 */
+                setLogoUrl(result.info.secure_url);
+              }}
               onError={(error: any) => {
-                console.error("Cloudinary Upload Error:", error);
-                toast.error("上傳失敗，請檢查 Cloudinary 配置");
+                /**
+                 * 標誌圖片上傳失敗
+                 * @param error 錯誤資訊
+                 */
+                console.error("Cloudinary Upload Error詳細資訊:", error);
+                toast.error(`圖片上傳失敗: ${error?.statusText || '未知錯誤'}`);
               }}
               options={{
                 cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+                uploadPreset: process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "primestay_preset",
                 maxFiles: 1,
                 clientAllowedFormats: ["png", "jpg", "jpeg", "svg"],
                 sources: ["local", "url"]

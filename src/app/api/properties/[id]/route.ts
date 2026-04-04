@@ -58,6 +58,11 @@ export async function GET(
   }
 }
 
+/**
+ * 更新房源資訊
+ * @param req 請求物件
+ * @param context 路由上下文，包含非同步參數
+ */
 export async function PUT(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -69,7 +74,13 @@ export async function PUT(
       return NextResponse.json({ error: "權限不足" }, { status: 403 });
     }
 
-    const { id } = await params;
+    // 在 Next.js 15+ 中，params 必須先被 await 才能解構
+    const resolvedParams = await params;
+    const id = resolvedParams.id;
+
+    if (!id) {
+      return NextResponse.json({ error: "缺少房源 ID" }, { status: 400 });
+    }
     const body = await req.json();
 
     // 檢查房源是否存在
