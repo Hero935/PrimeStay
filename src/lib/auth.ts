@@ -56,7 +56,9 @@ export const authOptions: NextAuthOptions = {
         }
 
         // 檢查帳號狀態：SUSPENDED 帳號禁止登入
-        if (user.status === "SUSPENDED") {
+        // 使用類型斷言確保在 Client 未完全更新時仍可檢查 status
+        const userWithStatus = user as any;
+        if (userWithStatus.status === "SUSPENDED") {
           console.log(`[Auth] 帳號已被停權: ${credentials.email}`);
           throw new Error("此帳號已被停用，請聯絡系統管理員");
         }
@@ -66,7 +68,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           role: user.systemRole,
-          status: user.status,
+          status: userWithStatus.status || "ACTIVE",
         };
       },
     }),

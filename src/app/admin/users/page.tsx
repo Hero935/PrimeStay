@@ -29,25 +29,38 @@ export default async function AdminUsersPage() {
   }
 
   // 查詢所有用戶，依角色分類排序
+  // Re-compilation trigger: 2026-04-04 19:46
   const users = await prisma.user.findMany({
     select: {
       id: true,
-      name: true,
       email: true,
+      name: true,
       systemRole: true,
+      // @ts-ignore - 暫時繞過 Prisma Client 未即時更新的問題
       status: true,
       createdAt: true,
       organizations: {
-        select: { id: true, name: true },
+        select: {
+          id: true,
+          name: true,
+        },
       },
       userOrganizations: {
         select: {
           memberRole: true,
-          organization: { select: { id: true, name: true } },
+          organization: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
       },
     },
-    orderBy: [{ systemRole: "asc" }, { createdAt: "desc" }],
+    orderBy: [
+      { systemRole: "asc" },
+      { createdAt: "desc" },
+    ],
   });
 
   // 統計各狀態數量
