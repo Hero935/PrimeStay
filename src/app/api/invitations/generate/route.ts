@@ -20,6 +20,11 @@ export async function POST(req: Request) {
 
     const { organizationId, propertyId, targetRole } = await req.json();
 
+    // 1.2 角色型權限細分：MANAGER 只能邀請 TENANT
+    if ((session.user as any).role === "MANAGER" && targetRole === "MANAGER") {
+      return NextResponse.json({ error: "代管人員無權邀請其他代管人員" }, { status: 403 });
+    }
+
     if (!organizationId || !targetRole) {
       return NextResponse.json({ error: "缺少必要參數" }, { status: 400 });
     }

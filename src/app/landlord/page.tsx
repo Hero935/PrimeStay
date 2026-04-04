@@ -64,13 +64,26 @@ export default async function LandlordDashboard() {
     }
   });
 
+  // 5. 總預估營收 (所有 OCCUPIED 租約的租金總和)
+  const totalRevenue = await prisma.contract.aggregate({
+    where: {
+      status: "OCCUPIED",
+      property: propertyFilter
+    },
+    _sum: {
+      monthlyRent: true
+    }
+  });
+
+  const revenueValue = totalRevenue._sum.monthlyRent ? Number(totalRevenue._sum.monthlyRent).toLocaleString() : "0";
+
   const stats = [
-    { 
-      title: role === "LANDLORD" ? "總預估營收" : "最近處理帳單", 
-      value: role === "LANDLORD" ? "$124,500" : "8 筆", 
-      description: role === "LANDLORD" ? "+12.5% 自上月" : "本月已核銷", 
-      icon: role === "LANDLORD" ? TrendingUp : Receipt, 
-      color: "text-emerald-600" 
+    {
+      title: role === "LANDLORD" ? "總預估營收" : "最近處理帳單",
+      value: role === "LANDLORD" ? `$${revenueValue}` : `${pendingBillings} 筆`,
+      description: role === "LANDLORD" ? "目前活躍租約總計" : "需處理帳單數",
+      icon: role === "LANDLORD" ? TrendingUp : Receipt,
+      color: "text-emerald-600"
     },
     { 
       title: role === "LANDLORD" ? "所有房源" : "負責房源", 
