@@ -25,7 +25,7 @@ export async function GET() {
       return NextResponse.json({ error: "Organization not found" }, { status: 404 });
     }
 
-    const logs = await (prisma as any).auditLog.findMany({
+    const logs = await prisma.auditLog.findMany({
       where: { organizationId: organization.id },
       include: {
         user: {

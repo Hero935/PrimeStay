@@ -104,6 +104,9 @@ erDiagram
     Organization {
         uuid id PK
         string name
+        string logoUrl
+        string phone
+        string email
         uuid ownerId FK
         datetime createdAt
     }

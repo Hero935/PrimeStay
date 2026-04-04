@@ -118,7 +118,7 @@ model Property {
   photos                String[]       // Cloudinary URLs
   defaultRent           Decimal
   defaultDeposit        Decimal
-  defaultElectricityFee Decimal        @default(0)
+  defaultElectricityFee Decimal        @default(5)
   defaultWaterFee       Decimal        @default(0)
   defaultManagementFee  Decimal        @default(0)
   equipmentList         Json?          // List of equipment

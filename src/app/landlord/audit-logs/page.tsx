@@ -47,7 +47,7 @@ export default function LandlordAuditLogsPage() {
   };
 
   return (
-    <>
+    <div className="p-6">
       <div className="mb-8">
         <h1 className="text-2xl font-bold tracking-tight">操作日誌</h1>
         <p className="text-slate-500">稽核組織內所有 Manager 與關鍵變動紀錄</p>
@@ -109,6 +109,6 @@ export default function LandlordAuditLogsPage() {
           </div>
         </CardContent>
       </Card>
-    </>
+    </div>
   );
 }

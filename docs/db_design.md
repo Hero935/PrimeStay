@@ -54,8 +54,8 @@
 | `size` | Decimal | Not Null | **坪數** | |
 | `photos` | String[] | | 房源照片 URL 列表 | |
 | `defaultRent` | Decimal | Not Null | **預設租金** | |
-| `defaultDeposit` | Decimal | Not Null | **預設押金** | |
-| `defaultElectricityFee`| Decimal | Default(0) | 預設電費 (元/度) | |
+| `defaultDeposit` | Decimal | Not Null | **預設押金** (「月租金 * 2」代入「預設押金」初始值) | |
+| `defaultElectricityFee`| Decimal | Default(5) | 預設電費 (元/度) | |
 | `defaultWaterFee` | Decimal | Default(0) | 預設水費 (元/月或元/度) | |
 | `defaultManagementFee`| Decimal | Default(0) | 預設管理費 | |
 | `equipmentList` | JSON | | 設備清單 (包含設備名稱與照片) | |
@@ -99,10 +99,10 @@
 > - 起租日：新建資料當日
 > - 結束日：預設一年
 > - 月租金：參考房源之 `defaultRent`
-> - 押金：參考房源之 `defaultDeposit`
+> - 押金：參考房源之 `defaultDeposit` (建立時，系統前端建議值為月租金 * 2)
 > - 簽約日：新建資料當日
 > - 繳租週期：預設月繳 (MONTHLY)
-> - 電費單價：參考房源之 `defaultElectricityFee`
+> - 電費單價：參考房源之 `defaultElectricityFee` (系統預設 5 元/度)
 > - 起始電表度數：預設 0
 > - 水費單價：參考房源之 `defaultWaterFee`
 > - 起始水表度數：預設 0

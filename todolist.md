@@ -57,3 +57,8 @@
 - [x] 新增 `src/app/admin/settings/GenerateLandlordInviteForm.tsx`：Client Component 產生邀請碼表單
 - [x] 更新 `docs/ui_design_spec.md`：新增 4.0 系統管理員儀表板設計規格章節
 - [x] 更新 `docs/roles.md`：記錄系統管理員對用戶狀態（停權/恢復）的管理權限規劃
+- [x] 修復 `PATCH /api/landlord/organization`：修正 Prisma schema 欄位缺失導致的 500 錯誤
+- [x] 修復 `GET /api/landlord/audit-logs`：修正 `prisma.auditLog` 未定義導致的 500 錯誤
+- [x] 修復 `src/app/landlord/audit-logs/page.tsx`：修正 JSX 語法錯誤導致的編譯失敗
+- [x] 修復房東房源管理：更新「新增房源」表單欄位以符合 `db_design.md` (2026-04-04)
+- [x] 實作房源編輯與刪除功能：包含前端 UI 邏輯與後端 `api/properties/[id]` 介面 (2026-04-04)
