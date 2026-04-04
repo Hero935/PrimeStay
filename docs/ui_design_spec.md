@@ -118,6 +118,45 @@
   - 中間區塊：本月營收趨勢圖 (Line Chart)。
 - **待辦任務清單**: 顯示「急需處理」項目。
 
+#### 4.1.1 側邊欄導航 (Landlord Sidebar)
+
+| 選單項目 | Lucide Icon | 路由 | 說明 |
+| :--- | :--- | :--- | :--- |
+| 總覽 | `LayoutDashboard` | `/landlord` | |
+| 房源管理 | `Home` | `/landlord/properties` | |
+| 成員管理 | `Users` | `/landlord/members` | 管理團隊與房客 |
+| 帳單核銷 | `Receipt` | `/landlord/billings` | |
+| 維修工單 | `Wrench` | `/landlord/maintenances` | |
+| 操作日誌 | `History` | `/landlord/audit-logs` | 監督 Manager |
+| 組織設定 | `Settings` | `/landlord/settings` | 僅限 Landlord (Owner) |
+
+#### 4.1.2 成員管理中心 (Member Center)
+
+- **分頁標籤 (Tabs)**:
+  - **代管團隊 (Managers)**: 列出組織內所有 Manager，顯示其「負責房源數量」。
+  - **房客列表 (Tenants)**: 列出所有房客，可依房源篩選。
+- **邀請按鈕**:
+  - 「邀請代管人員」：輸入 Email，發送邀請連結。
+  - 「邀請房客」：需先選擇欲分派之房源，再產生邀請碼。
+- **人員操作**: 支援「停權」、「移除」與「查看操作紀錄」。
+
+#### 4.1.3 房源分派介面 (Assignment UI)
+
+- **房源詳情頁面增補**:
+  - 顯示「負責代管人員」區塊。
+  - 提供「更改代管人員」按鈕，彈出清單供房東指派。
+  - **權責溢位**: 若未指定 Manager，則顯示「⚠️ 此房源目前由您親自管理」。
+
+#### 4.1.4 組織設定 (Organization Settings)
+
+- **基本資訊編輯**:
+  - 修改「組織名稱」(Organization Name)。
+  - 更新「聯絡電話」、「服務 Email」。
+- **品牌設定**:
+  - 上傳「組織 Logo」(用於產生租約範本或報表)。
+- **安全帳戶**:
+  - 變更房東個人密碼、設定二次驗證。
+
 ### 4.2 房客行動端中心 (Tenant Mobile Hub) - 深度設計
 房客端介面採取完全的行動優先設計，模擬原生 App 的流暢感。
 

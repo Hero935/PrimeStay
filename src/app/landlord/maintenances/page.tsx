@@ -67,7 +67,7 @@ export default function LandlordMaintenancesPage() {
   if (authStatus === "loading") return <div className="p-8 text-center text-gray-500">載入中...</div>;
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
+    <>
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center">
           <Link href="/landlord" className="text-gray-500 hover:text-primary transition-colors mr-4">
@@ -214,6 +214,6 @@ export default function LandlordMaintenancesPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

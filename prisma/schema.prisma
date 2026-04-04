@@ -74,13 +74,19 @@ model User {
   userOrganizations UserOrganization[]
   contracts         Contract[]        @relation("TenantContracts")
   invitationsSent   Invitation[]      @relation("Inviter")
+  auditLogs         AuditLog[]
+  managedProperties Property[]       @relation("PropertyManager")
 }
 
 model Organization {
   id        String   @id @default(uuid())
   name      String
+  logoUrl   String?
+  phone     String?
+  email     String?
   ownerId   String
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt @default(now())
 
   owner             User               @relation("OrgOwner", fields: [ownerId], references: [id])
   members           UserOrganization[]
@@ -103,6 +109,8 @@ model UserOrganization {
 model Property {
   id                    String         @id @default(uuid())
   organizationId        String
+  managerId             String?
+  manager               User?          @relation("PropertyManager", fields: [managerId], references: [id])
   address               String
   roomNumber            String
   type                  String
@@ -212,4 +220,17 @@ model Maintenance {
   updatedAt     DateTime          @updatedAt
 
   contract Contract @relation(fields: [contractId], references: [id])
+}
+
+model AuditLog {
+  id             String   @id @default(uuid())
+  userId         String
+  organizationId String
+  action         String   // e.g., "INVITE_TENANT", "PROPERTY_ASSIGNMENT"
+  targetType     String   // e.g., "PROPERTY", "USER", "BILLING"
+  targetId       String?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
 }

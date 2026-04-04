@@ -35,7 +35,11 @@ export async function GET(req: Request) {
     }
 
     const properties = await prisma.property.findMany({
-      where: orgId ? { organizationId: orgId } : {},
+      where: {
+        organizationId: orgId || undefined,
+        // 如果是 Manager，限制僅能看到分配到的房源
+        managerId: (session.user as any).role === "MANAGER" ? (session.user as any).id : undefined,
+      },
       orderBy: { createdAt: "desc" },
     });
 

@@ -61,16 +61,26 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           { title: "房東邀請", url: "/admin/invitations", icon: Mail },
           { title: "系統設定", url: "/admin/settings", icon: Settings },
         ]
-      : role === "LANDLORD" || role === "MANAGER"
+      : role === "LANDLORD"
         ? [
             { title: "總覽儀表板", url: "/landlord", icon: LayoutDashboard },
             { title: "房源管理", url: "/landlord/properties", icon: Building2 },
-            { title: "帳單報表", url: "/landlord/billings", icon: Receipt },
-            { title: "報修處理", url: "/landlord/maintenances", icon: Wrench },
+            { title: "成員管理", url: "/landlord/members", icon: Users },
+            { title: "帳單核銷", url: "/landlord/billings", icon: Receipt },
+            { title: "維修工單", url: "/landlord/maintenances", icon: Wrench },
+            { title: "操作日誌", url: "/landlord/audit-logs", icon: ShieldCheck },
+            { title: "組織設定", url: "/landlord/settings", icon: Settings },
           ]
-        : [
-            { title: "我的租務", url: "/tenant", icon: LayoutDashboard },
-          ];
+        : role === "MANAGER"
+          ? [
+              { title: "管理總覽", url: "/landlord", icon: LayoutDashboard },
+              { title: "負責房源", url: "/landlord/properties", icon: Building2 },
+              { title: "帳單管理", url: "/landlord/billings", icon: Receipt },
+              { title: "維修處理", url: "/landlord/maintenances", icon: Wrench },
+            ]
+          : [
+              { title: "我的租務", url: "/tenant", icon: LayoutDashboard },
+            ];
 
   return (
     <Sidebar collapsible="icon" {...props}>

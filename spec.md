@@ -42,20 +42,40 @@ graph TD
     BindAsset --> End((流程結束))
 ```
 
-### 3.2 房客加入循序圖 (Sequence Diagram)
+### 3.2 房源分派與房客加入循序圖 (Sequence Diagram)
+
+#### 3.2.1 房源分派 (Property Assignment)
 ```mermaid
 sequenceDiagram
-    participant L as Landlord/Manager
+    participant L as Landlord (Owner)
+    participant S as System
+    participant M as Manager
+    
+    L->>S: 進入房源詳情頁面
+    L->>S: 點擊 [更改代管人員]
+    S-->>L: 顯示組織內所有 Manager 清單
+    L->>S: 選擇特定 Manager 並提交
+    S->>S: 更新 Property.managerId
+    S->>S: 寫入操作日誌 (Audit Log)
+    S-->>M: 推播通知 (您已受派管理房源 X)
+```
+
+#### 3.2.2 房客加入 (Tenant Onboarding)
+```mermaid
+sequenceDiagram
+    participant LM as Landlord / Manager
     participant S as System
     participant T as Tenant
     
-    L->>S: 生成邀請碼 (含房源與租約資訊)
-    S-->>L: 傳回邀請碼
-    L->>T: 發送邀請碼
+    LM->>S: 生成邀請碼 (需具備房源存取權)
+    S->>S: 驗證 LM 是否為房源擁有者或受派管理員
+    S-->>LM: 傳回邀請碼
+    LM->>T: 發送邀請碼 (Email/Link)
     T->>S: 提交邀請碼註冊
     S->>S: 驗證代碼有效性
     S->>S: 建立房客帳號 (User Role: TENANT)
     S->>S: 綁定租約 (Contract) 與房源關係
+    S->>S: 寫入操作日誌 (LM 邀請了 Tenant X)
     S-->>T: 註冊完成並登入
 ```
 
@@ -71,6 +91,7 @@ erDiagram
     Contract ||--o{ Billing : generates
     Billing ||--o| Payment : has
     Contract ||--o{ Maintenance : has
+    User ||--o{ AuditLog : performs
 
     User {
         uuid id PK
@@ -97,6 +118,7 @@ erDiagram
     Property {
         uuid id PK
         uuid organizationId FK
+        uuid managerId FK "受派管理之 Manager，可為空"
         string address
         string roomNumber
         string type
@@ -151,6 +173,17 @@ erDiagram
         string description
         stringArray photos "Cloudinary URLs"
         enum status "PENDING, PROCESSING, COMPLETED"
+    }
+
+    AuditLog {
+        uuid id PK
+        uuid userId FK "執行操作的人"
+        uuid organizationId FK
+        string action "INVITE_TENANT, COLLECT_BILL, etc."
+        string targetType "PROPERTY, USER, BILLING"
+        uuid targetId
+        json metadata "原始值與變更值"
+        datetime createdAt
     }
 ```
 
