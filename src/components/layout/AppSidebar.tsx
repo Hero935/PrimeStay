@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Mail,
   ShieldCheck,
+  Users,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 
@@ -56,6 +57,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       ? [
           { title: "系統儀表板", url: "/admin", icon: LayoutDashboard },
           { title: "組織管理", url: "/admin/organizations", icon: Building2 },
+          { title: "用戶管理", url: "/admin/users", icon: Users },
           { title: "房東邀請", url: "/admin/invitations", icon: Mail },
           { title: "系統設定", url: "/admin/settings", icon: Settings },
         ]

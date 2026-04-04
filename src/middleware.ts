@@ -3,17 +3,28 @@ import { NextResponse } from "next/server";
 
 /**
  * PrimeStay 基於角色的權限 Middleware
+ * 同時處理：角色路由保護 + SUSPENDED 帳號全局攔截
  */
 export default withAuth(
   function middleware(req) {
     const token = req.nextauth.token;
     const path = req.nextUrl.pathname;
 
-    // 如果沒有 token (雖然 authorized 回傳 true, 但確保安全)，NextAuth 預設會導向登入頁
+    // 如果沒有 token，NextAuth 預設會導向登入頁
     if (!token) return NextResponse.next();
 
-    // 取得角色
+    // 取得角色與帳號狀態
     const role = token.role as string;
+    const status = token.status as string;
+
+    // 0. 全局攔截：帳號已被停權（SUSPENDED）一律導向停權通知頁
+    if (status === "SUSPENDED") {
+      const suspendedUrl = new URL("/suspended", req.url);
+      // 避免無限重導（若本身已在 /suspended 頁）
+      if (!path.startsWith("/suspended")) {
+        return NextResponse.redirect(suspendedUrl);
+      }
+    }
 
     // 1. 管理員專屬路徑
     if (path.startsWith("/admin") && role !== "ADMIN") {
@@ -21,7 +32,6 @@ export default withAuth(
     }
 
     // 2. 房東/管理員可造訪路徑
-    // 房東角色包含 LANDLORD 與 MANAGER (組織管理員)
     const canAccessLandlord = ["ADMIN", "LANDLORD", "MANAGER"].includes(role);
     if (path.startsWith("/landlord") && !canAccessLandlord) {
       return NextResponse.redirect(new URL("/", req.url));
@@ -53,5 +63,6 @@ export const config = {
     "/landlord/:path*",
     "/tenant/:path*",
     "/dashboard/:path*",
+    "/suspended",
   ],
 };

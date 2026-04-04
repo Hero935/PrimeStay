@@ -55,27 +55,43 @@ export const authOptions: NextAuthOptions = {
           throw new Error("密碼錯誤");
         }
 
+        // 檢查帳號狀態：SUSPENDED 帳號禁止登入
+        if (user.status === "SUSPENDED") {
+          console.log(`[Auth] 帳號已被停權: ${credentials.email}`);
+          throw new Error("此帳號已被停用，請聯絡系統管理員");
+        }
+
         return {
           id: user.id,
           email: user.email,
           name: user.name,
           role: user.systemRole,
+          status: user.status,
         };
       },
     }),
   ],
   callbacks: {
+    /**
+     * JWT 回調：將 user 資訊（id, role, status）寫入 token
+     * 登入時由 authorize 回傳的 user 觸發，後續請求由 token 提供
+     */
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
         token.role = (user as any).role;
+        token.status = (user as any).status;
       }
       return token;
     },
+    /**
+     * Session 回調：將 token 中的 id, role, status 暴露給前端 session
+     */
     async session({ session, token }) {
       if (session.user) {
         (session.user as any).id = token.id;
         (session.user as any).role = token.role;
+        (session.user as any).status = token.status;
       }
       return session;
     },

@@ -10,6 +10,12 @@ datasource db {
 
 // --- Enums ---
 
+/** 用戶帳號狀態：ACTIVE 正常使用，SUSPENDED 已被管理員停權 */
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
 enum SystemRole {
   ADMIN
   LANDLORD
@@ -60,6 +66,7 @@ model User {
   hashedPassword String
   name           String?
   systemRole     SystemRole         @default(TENANT)
+  status         UserStatus         @default(ACTIVE)
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
   

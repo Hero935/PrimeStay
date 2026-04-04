@@ -56,3 +56,4 @@
 - [x] 新增 `src/app/admin/settings/page.tsx`：系統設定頁（版本資訊、角色說明）
 - [x] 新增 `src/app/admin/settings/GenerateLandlordInviteForm.tsx`：Client Component 產生邀請碼表單
 - [x] 更新 `docs/ui_design_spec.md`：新增 4.0 系統管理員儀表板設計規格章節
+- [x] 更新 `docs/roles.md`：記錄系統管理員對用戶狀態（停權/恢復）的管理權限規劃
