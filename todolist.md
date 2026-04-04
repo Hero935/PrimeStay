@@ -43,3 +43,16 @@
 - [x] 檢視項目現況並優化 .gitignore 配置 (2026-04-03)
 - [x] 更新 `docs\db_design.md` 及 `docs\ui_design_spec.md` 設計文檔 (2026-04-03)
 - [x] 根據 `spec.md` 規範更新 `docs\roles.md` 角色權限文檔 (2026-04-03)
+
+## 9. 🔑 系統管理員功能 (Admin Panel) (2026-04-04)
+- [x] 修正 `src/app/page.tsx`：ADMIN 登入後導向 `/admin`（原誤導向 `/landlord`）
+- [x] 重構 `src/components/layout/AppSidebar.tsx`：依角色三分支顯示選單（ADMIN / 房東-代管 / 房客）
+- [x] 新增 `src/app/admin/layout.tsx`：Admin 區路由保護 Layout
+- [x] 新增 `src/app/admin/page.tsx`：系統儀表板（統計卡片、組織列表、待處理邀請）
+- [x] 新增 `src/app/api/admin/stats/route.ts`：平行查詢 6 項統計的 API
+- [x] 新增 `src/app/api/admin/organizations/route.ts`：組織完整資訊 API
+- [x] 新增 `src/app/admin/organizations/page.tsx`：組織詳細管理頁（唯讀總覽）
+- [x] 新增 `src/app/admin/invitations/page.tsx`：房東邀請記錄頁（含狀態統計）
+- [x] 新增 `src/app/admin/settings/page.tsx`：系統設定頁（版本資訊、角色說明）
+- [x] 新增 `src/app/admin/settings/GenerateLandlordInviteForm.tsx`：Client Component 產生邀請碼表單
+- [x] 更新 `docs/ui_design_spec.md`：新增 4.0 系統管理員儀表板設計規格章節

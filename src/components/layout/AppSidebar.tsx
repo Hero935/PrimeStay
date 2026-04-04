@@ -9,6 +9,8 @@ import {
   Settings,
   LogOut,
   ChevronRight,
+  Mail,
+  ShieldCheck,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 
@@ -41,19 +43,32 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: session } = useSession();
   const pathname = usePathname();
 
-  const isAdmin = (session?.user as any)?.role === "LANDLORD" || (session?.user as any)?.role === "MANAGER";
+  const role = (session?.user as any)?.role as string | undefined;
 
-  const navItems = isAdmin 
-    ? [
-        { title: "總覽儀表板", url: "/landlord", icon: LayoutDashboard },
-        { title: "房源管理", url: "/landlord/properties", icon: Building2 },
-        { title: "帳單報表", url: "/landlord/billings", icon: Receipt },
-        { title: "報修處理", url: "/landlord/maintenances", icon: Wrench },
-      ]
-    : [
-        { title: "我的租務", url: "/tenant", icon: LayoutDashboard },
-        // 租客可以在租務頁面中看到帳單與報修
-      ];
+  /**
+   * 根據系統角色 (systemRole) 決定側邊欄的導航選單項目
+   * - ADMIN: 平台管理員專屬選單，路由指向 /admin/*
+   * - LANDLORD / MANAGER: 房源管理選單，路由指向 /landlord/*
+   * - TENANT (預設): 租客選單，路由指向 /tenant
+   */
+  const navItems =
+    role === "ADMIN"
+      ? [
+          { title: "系統儀表板", url: "/admin", icon: LayoutDashboard },
+          { title: "組織管理", url: "/admin/organizations", icon: Building2 },
+          { title: "房東邀請", url: "/admin/invitations", icon: Mail },
+          { title: "系統設定", url: "/admin/settings", icon: Settings },
+        ]
+      : role === "LANDLORD" || role === "MANAGER"
+        ? [
+            { title: "總覽儀表板", url: "/landlord", icon: LayoutDashboard },
+            { title: "房源管理", url: "/landlord/properties", icon: Building2 },
+            { title: "帳單報表", url: "/landlord/billings", icon: Receipt },
+            { title: "報修處理", url: "/landlord/maintenances", icon: Wrench },
+          ]
+        : [
+            { title: "我的租務", url: "/tenant", icon: LayoutDashboard },
+          ];
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -102,7 +117,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   </Avatar>
                   <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden ml-2">
                     <span className="truncate font-semibold">{session?.user?.name}</span>
-                    <span className="truncate text-xs text-muted-foreground">{(session?.user as any)?.role}</span>
+                    <span className="truncate text-xs text-muted-foreground">
+                      {role === "ADMIN" ? "平台管理員" : role === "LANDLORD" ? "房東" : role === "MANAGER" ? "代管人員" : "房客"}
+                    </span>
                   </div>
                 </SidebarMenuButton>
               </DropdownMenuTrigger>

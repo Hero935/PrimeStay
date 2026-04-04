@@ -12,8 +12,7 @@ export default async function Home() {
   if (session?.user) {
     const role = (session.user as any).role;
     if (role === "ADMIN") {
-      // 如果有 admin 目錄則導向 /admin，目前先導向 /landlord
-      redirect("/landlord");
+      redirect("/admin");
     } else if (role === "LANDLORD" || role === "MANAGER") {
       redirect("/landlord");
     } else if (role === "TENANT") {
