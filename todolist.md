@@ -62,3 +62,4 @@
 - [x] 修復 `src/app/landlord/audit-logs/page.tsx`：修正 JSX 語法錯誤導致的編譯失敗
 - [x] 修復房東房源管理：更新「新增房源」表單欄位以符合 `db_design.md` (2026-04-04)
 - [x] 實作房源編輯與刪除功能：包含前端 UI 邏輯與後端 `api/properties/[id]` 介面 (2026-04-04)
+- [x] 修復房源詳情 API：處理 Next.js 16 非同步 `params` 導致的 500 錯誤 (2026-04-04)

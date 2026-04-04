@@ -45,6 +45,7 @@
 - 2026-04-04: 擴充用戶生命週期管理，新增 `status` (ACTIVE/SUSPENDED) 欄位，實作管理後台與全站攔截 Middleware。
 - 2026-04-04: 修復 Cloudinary 圖片上傳 400 錯誤。
 - 2026-04-04: 修復房東房源管理 404 錯誤，實作完整的房源 CRUD API 與押金預算邏輯。
+- 2026-04-04: 修復 Next.js 16 動態路由引發的 500 錯誤。將 `/api/properties/[id]` 中的 `params` 改為非同步處理 (`await params`)。
 
 ---
 報告人：Antigravity AI

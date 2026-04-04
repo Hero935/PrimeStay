@@ -12,7 +12,7 @@ import { NextResponse } from "next/server";
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -21,7 +21,7 @@ export async function GET(
       return NextResponse.json({ error: "未登入" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     const property = await prisma.property.findUnique({
       where: { id },
@@ -60,7 +60,7 @@ export async function GET(
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -69,7 +69,7 @@ export async function PUT(
       return NextResponse.json({ error: "權限不足" }, { status: 403 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     const body = await req.json();
 
     // 檢查房源是否存在
@@ -136,7 +136,7 @@ export async function PUT(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -145,7 +145,7 @@ export async function DELETE(
       return NextResponse.json({ error: "權限不足" }, { status: 403 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     // 檢查房源是否存在
     const property = await prisma.property.findUnique({
