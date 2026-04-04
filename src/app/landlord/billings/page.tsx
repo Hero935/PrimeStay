@@ -4,6 +4,11 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { ResponsiveDrawer } from "@/components/ui/responsive-drawer";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Receipt, Calendar, User, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 /**
  * 帳單報表頁面 (房東端)

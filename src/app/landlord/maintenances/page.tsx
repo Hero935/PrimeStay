@@ -4,6 +4,10 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { ResponsiveDrawer } from "@/components/ui/responsive-drawer";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Wrench, Calendar, MapPin, ArrowRight } from "lucide-react";
 
 /**
  * 房東維修管理頁面

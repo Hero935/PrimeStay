@@ -39,6 +39,7 @@ export function BottomNav() {
           { title: "房源", url: "/landlord/properties", icon: Building2 },
           { title: "帳單", url: "/landlord/billings", icon: Receipt },
           { title: "報修", url: "/landlord/maintenances", icon: Wrench },
+          { title: "設定", url: "/landlord/settings", icon: Settings },
         ]
       : [
           { title: "我的租務", url: "/tenant", icon: LayoutDashboard },

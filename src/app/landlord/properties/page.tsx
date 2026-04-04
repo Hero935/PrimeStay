@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Home, MapPin, Square, X, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { ManagerAssignment } from "./ManagerAssignment";
+import { ResponsiveDrawer } from "@/components/ui/responsive-drawer";
 
 /**
  * 房源管理頁面
@@ -31,6 +32,7 @@ export default function PropertiesPage() {
   const [managementFee, setManagementFee] = useState("0");
   const [photos, setPhotos] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   /**
    * 從 URL 中提取 Cloudinary 的 public_id

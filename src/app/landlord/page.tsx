@@ -12,6 +12,7 @@ import {
   History
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { RevenueChart } from "@/components/dashboard/RevenueChart";
 
 /**
  * 房東/代管人員管理後台儀表板
@@ -46,7 +47,7 @@ export default async function LandlordDashboard() {
     }
   });
 
-  // 3. 待處理帳單 (PENDING_TENANT 或 PENDING_APPROVAL)
+  // 3. 待處理帳單 (包含待房客填寫與待房東審核)
   const pendingBillings = await prisma.billing.count({
     where: {
       status: { in: ["PENDING_TENANT", "PENDING_APPROVAL"] },
@@ -56,11 +57,23 @@ export default async function LandlordDashboard() {
     }
   });
 
-  // 4. 活躍房客 (狀態為 OCCUPIED)
-  const tenantCount = await prisma.contract.count({
+  // 4. 逾期帳單 (僅計算狀態為 PENDING_TENANT 且已過期的)
+  // 註：目前 Schema 中 Billing 尚未有 dueDate，暫以 periodEnd 作為逾期基準
+  const overdueBillings = await prisma.billing.count({
     where: {
-      status: "OCCUPIED",
-      property: propertyFilter
+      status: "PENDING_TENANT",
+      periodEnd: { lt: new Date() },
+      contract: {
+        property: propertyFilter
+      }
+    }
+  });
+
+  // 5. 空房數 (AVAILABLE 狀態的房源)
+  const vacancyCount = await prisma.property.count({
+    where: {
+      ...propertyFilter,
+      status: "AVAILABLE"
     }
   });
 
@@ -79,32 +92,32 @@ export default async function LandlordDashboard() {
 
   const stats = [
     {
-      title: role === "LANDLORD" ? "總預估營收" : "最近處理帳單",
-      value: role === "LANDLORD" ? `$${revenueValue}` : `${pendingBillings} 筆`,
-      description: role === "LANDLORD" ? "目前活躍租約總計" : "需處理帳單數",
-      icon: role === "LANDLORD" ? TrendingUp : Receipt,
+      title: "總預估營收",
+      value: `$${revenueValue}`,
+      description: "目前活躍租約總計",
+      icon: TrendingUp,
       color: "text-emerald-600"
     },
-    { 
-      title: role === "LANDLORD" ? "所有房源" : "負責房源", 
-      value: propertyCount.toString(), 
-      description: "包含多種房型", 
-      icon: Building2, 
-      color: "text-blue-600" 
+    {
+      title: "空房數",
+      value: vacancyCount.toString(),
+      description: "目前待租物件",
+      icon: Building2,
+      color: "text-blue-600"
     },
-    { 
-      title: "活躍房客", 
-      value: tenantCount.toString(), 
-      description: "目前租約中", 
-      icon: Users, 
-      color: "text-violet-600" 
+    {
+      title: "待處理報修",
+      value: pendingMaintenances.toString(),
+      description: "需盡速指派",
+      icon: Wrench,
+      color: "text-amber-600"
     },
-    { 
-      title: "待處理報修", 
-      value: pendingMaintenances.toString(), 
-      description: "需盡速指派", 
-      icon: Wrench, 
-      color: "text-amber-600" 
+    {
+      title: "逾期帳單",
+      value: overdueBillings.toString(),
+      description: "待房客繳費",
+      icon: Receipt,
+      color: "text-red-500"
     },
   ];
 
