@@ -31,9 +31,13 @@ export default withAuth(
       return NextResponse.redirect(new URL("/", req.url));
     }
 
-    // 2. 房東/管理員可造訪路徑
-    const canAccessLandlord = ["ADMIN", "LANDLORD", "MANAGER"].includes(role);
+    // 2. 房東/代管可造訪路徑 (ADMIN 不應主動進入房東區)
+    const canAccessLandlord = ["LANDLORD", "MANAGER"].includes(role);
     if (path.startsWith("/landlord") && !canAccessLandlord) {
+      // 如果 ADMIN 誤闖，導回 ADMIN 儀表板
+      if (role === "ADMIN") {
+        return NextResponse.redirect(new URL("/admin", req.url));
+      }
       return NextResponse.redirect(new URL("/", req.url));
     }
 

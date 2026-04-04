@@ -11,8 +11,9 @@ export default async function Home() {
 
   if (session?.user) {
     const role = (session.user as any).role;
+    console.log(`[Home] User role: ${role}, redirecting...`);
     if (role === "ADMIN") {
-      redirect("/admin");
+      return redirect("/admin");
     } else if (role === "LANDLORD" || role === "MANAGER") {
       redirect("/landlord");
     } else if (role === "TENANT") {

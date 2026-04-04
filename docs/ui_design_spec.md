@@ -84,11 +84,14 @@
 | :--- | :--- | :--- |
 | 系統儀表板 | `LayoutDashboard` | `/admin` |
 | 組織管理 | `Building2` | `/admin/organizations` |
+| 用戶管理 | `Users` | `/admin/users` |
 | 房東邀請 | `Mail` | `/admin/invitations` |
 | 系統設定 | `Settings` | `/admin/settings` |
 
-**導向規則**：
-- 使用者以 `ADMIN` 身份登入後，首頁 (`/`) 必須自動重導向至 `/admin`，不得導向 `/landlord` 或 `/tenant`。
+**導向與連結規則**：
+- **嚴格導向**：使用者以 `ADMIN` 身份登入後，根路徑 (`/`) 必須透過 `src/app/page.tsx` 絕對重導向至 `/admin`。
+- **防止跨區**：ADMIN 角色之所有選單與內部連結，**禁止出現**非 `/admin` 開頭之路徑（例如禁止指向 `/landlord`）。
+- **設定頁面路徑**：全平台系統設定統一使用 `/admin/settings`。
 - [`src/middleware.ts`](src/middleware.ts) 已設定 `/admin/:path*` 路由需驗證角色，非 ADMIN 將被導回 `/`。
 
 #### 4.0.3 頁面交互設計細節
