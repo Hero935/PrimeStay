@@ -264,13 +264,6 @@ export default function LandlordMembersPage() {
               {invitations.length === 0 && !isLoading && (
                 <div className="text-center py-12">
                   <p className="text-slate-400">目前無待使用的有效邀請碼</p>
-                  <Button 
-                    variant="link" 
-                    className="text-blue-600 mt-2"
-                    onClick={() => openInviteDialog("MANAGER")}
-                  >
-                    立即生成邀請碼
-                  </Button>
                 </div>
               )}
             </TabsContent>

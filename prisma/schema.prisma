@@ -162,15 +162,15 @@ model Invitation {
   id             String     @id @default(uuid())
   code           String     @unique
   inviterId      String
-  organizationId String
+  organizationId String?
   propertyId     String?
   targetRole     SystemRole
   isUsed         Boolean    @default(false)
   expiresAt      DateTime
 
-  inviter      User         @relation("Inviter", fields: [inviterId], references: [id])
-  organization Organization @relation(fields: [organizationId], references: [id])
-  property     Property?    @relation(fields: [propertyId], references: [id])
+  inviter      User          @relation("Inviter", fields: [inviterId], references: [id])
+  organization Organization? @relation(fields: [organizationId], references: [id])
+  property     Property?     @relation(fields: [propertyId], references: [id])
 }
 
 model Billing {

@@ -41,11 +41,11 @@ graph TD
 flowchart TD
     Start([開始邀請]) --> RoleCheck{判斷角色}
     
-    RoleCheck -->|LANDLORD| SelectOrg[選擇組織 Organization]
+    RoleCheck -->|LANDLORD| SkipOrg[略過選擇組織 - 註冊時再設]
     RoleCheck -->|MANAGER| AutoOrg[自動帶入目前組織]
     RoleCheck -->|TENANT| SelectProp[選擇房源 Property]
     
-    SelectOrg --> Generate[點擊生成邀請碼]
+    SkipOrg --> Generate[點擊生成邀請碼]
     AutoOrg --> Generate
     SelectProp --> Generate
     
@@ -63,24 +63,42 @@ flowchart TD
 
 ## 4. 順序圖 (Sequence Diagram)
 
+### 4.1 邀請生成階段 (Invitation Generation)
 ```mermaid
 sequenceDiagram
-    participant User as 使用者
+    participant User as 管理員/房東
     participant Dialog as InviteDialog (UI)
     participant Hook as useInvitation (Logic)
     participant API as API Route
 
     User->>Dialog: 點擊邀請按鈕
-    Dialog->>Dialog: 根據 targetRole 渲染表單項目
-    User->>Dialog: 選擇組織/房源並確認
+    Dialog->>Dialog: 根據 targetRole 決定是否顯示組織/房源選擇
+    Note right of Dialog: LANDLORD 邀請無須選擇組織
+    User->>Dialog: 確認生成
     Dialog->>Hook: trigger(params)
-    Hook->>Hook: 設定 isLoading = true
     Hook->>API: POST /api/invitations/generate
-    API-->>Hook: 回傳 { success, code, expiresAt }
-    Hook->>Hook: 設定 inviteCode = code
-    Hook-->>Dialog: 更新 UI 顯示結果
-    User->>Dialog: 點擊複製內容
-    Dialog->>User: 提示已複製至剪貼簿
+    API-->>Hook: 回傳 { success, code }
+    Hook-->>Dialog: 顯示結果
+```
+
+### 4.2 房東註冊與自動初始化階段 (Registration & Initialization)
+```mermaid
+sequenceDiagram
+    participant NewUser as 新房東
+    participant RegPage as 註冊頁面
+    participant RegAPI as 註冊 API
+    participant DB as 資料庫
+
+    NewUser->>RegPage: 輸入邀請碼
+    RegPage->>RegPage: 偵測到角色為 LANDLORD 且無預設組織
+    RegPage->>NewUser: 顯示「組織名稱」輸入框 (必填)
+    NewUser->>RegPage: 提交 Email/密碼/組織名稱
+    RegPage->>RegAPI: POST /api/auth/register (含 organizationName)
+    RegAPI->>DB: 1. 建立 User (LANDLORD)
+    RegAPI->>DB: 2. 建立 Organization (owner 為該 User)
+    RegAPI->>DB: 3. 建立 UserOrganization 關聯 (OWNER)
+    RegAPI->>DB: 4. 標記邀請碼已使用
+    RegAPI-->>RegPage: 註冊成功
 ```
 
 ---

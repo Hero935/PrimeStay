@@ -17,18 +17,47 @@ export async function GET(req: Request) {
 
     const { searchParams } = new URL(req.url);
     const organizationId = searchParams.get("organizationId");
+    const targetRole = searchParams.get("targetRole");
+    const includeUsed = searchParams.get("includeUsed") === "true";
 
-    if (!organizationId) {
+    // 權限檢查與過濾邏輯
+    const isAdmin = (session.user as any).role === "ADMIN";
+    
+    // 如果不是 Admin 且沒有提供組織 ID，則報錯
+    if (!isAdmin && !organizationId) {
       return NextResponse.json({ error: "缺少組織 ID" }, { status: 400 });
     }
 
-    // 獲取該組織下且未使用的邀請
+    // 構建查詢條件
+    const where: any = {};
+    
+    if (organizationId) {
+      where.organizationId = organizationId;
+    }
+    
+    if (targetRole) {
+      where.targetRole = targetRole;
+    }
+
+    if (!includeUsed) {
+      where.isUsed = false;
+    }
+
+    // 獲取邀請列表
     const invitations = await prisma.invitation.findMany({
-      where: {
-        organizationId,
-        isUsed: false,
-      },
+      where,
       include: {
+        inviter: {
+          select: {
+            name: true,
+            email: true,
+          }
+        },
+        organization: {
+          select: {
+            name: true,
+          }
+        },
         property: {
           select: {
             address: true,

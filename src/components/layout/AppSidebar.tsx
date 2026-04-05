@@ -55,7 +55,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navItems =
     role === "ADMIN"
       ? [
-          { title: "系統儀表板", url: "/admin", icon: LayoutDashboard },
+          { title: "管理員儀表板", url: "/admin", icon: LayoutDashboard },
           { title: "組織管理", url: "/admin/organizations", icon: Building2 },
           { title: "用戶管理", url: "/admin/users", icon: Users },
           { title: "房東邀請", url: "/admin/invitations", icon: Mail },
@@ -63,7 +63,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         ]
       : role === "LANDLORD"
         ? [
-            { title: "總覽儀表板", url: "/landlord", icon: LayoutDashboard },
+            { title: "房東儀表板", url: "/landlord", icon: LayoutDashboard },
             { title: "房源管理", url: "/landlord/properties", icon: Building2 },
             { title: "成員管理", url: "/landlord/members", icon: Users },
             { title: "帳單核銷", url: "/landlord/billings", icon: Receipt },

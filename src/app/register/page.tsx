@@ -14,6 +14,7 @@ function RegisterForm() {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [invitationInfo, setInvitationInfo] = useState<any>(null);
+  const [orgName, setOrgName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [verifying, setVerifying] = useState(false);
@@ -53,7 +54,13 @@ function RegisterForm() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, name, code }),
+        body: JSON.stringify({
+          email,
+          password,
+          name,
+          code,
+          organizationName: orgName
+        }),
       });
 
       const data = await res.json();
@@ -110,6 +117,21 @@ function RegisterForm() {
                 <p className="text-xs text-blue-700">房源：{invitationInfo.propertyAddress}</p>
               )}
               <p className="text-xs text-blue-700">角色：{invitationInfo.role}</p>
+            </div>
+          )}
+
+          {invitationInfo?.role === "LANDLORD" && !invitationInfo.organizationName && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700">組織名稱 (由房東自定義)</label>
+              <input
+                type="text"
+                required
+                placeholder="自訂您的管理組織名稱"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-primary focus:ring-primary sm:text-sm bg-amber-50"
+                value={orgName}
+                onChange={(e) => setOrgName(e.target.value)}
+              />
+              <p className="mt-1 text-[10px] text-amber-600 font-medium">✨ 身為房東，您將為團隊建立一個新的組織。</p>
             </div>
           )}
 

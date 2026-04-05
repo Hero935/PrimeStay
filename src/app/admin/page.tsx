@@ -139,7 +139,7 @@ export default async function AdminDashboardPage() {
           <ShieldCheck className="w-5 h-5" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">系統管理員儀表板</h1>
+          <h1 className="text-2xl font-bold text-slate-900">管理員儀表板</h1>
           <p className="text-sm text-slate-500">全平台概況監控中心</p>
         </div>
       </div>
@@ -297,7 +297,7 @@ export default async function AdminDashboardPage() {
                       />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-slate-700 truncate">
-                          {inv.organization.name}
+                          {inv.organization?.name ?? "新房東註冊 (待設定組織)"}
                         </p>
                         <p className="text-xs text-slate-400 truncate">
                           邀請人：{inv.inviter.name}

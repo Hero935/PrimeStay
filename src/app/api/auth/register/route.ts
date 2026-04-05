@@ -9,7 +9,7 @@ import { NextResponse } from "next/server";
  */
 export async function POST(req: Request) {
   try {
-    const { email, password, name, code } = await req.json();
+    const { email, password, name, code, organizationName } = await req.json();
 
     if (!email || !password || !name || !code) {
       return NextResponse.json({ error: "請填寫完整註冊資訊" }, { status: 400 });
@@ -47,13 +47,38 @@ export async function POST(req: Request) {
         },
       });
 
-      // B. 建立組織關聯 (房東與管理員使用 OrgMemberRole)
-      // 非 TENANT (如 MANAGER) 需要加入 UserOrganization
-      if (invitation.targetRole === "MANAGER") {
+      // B. 建立組織與關聯
+      if (invitation.targetRole === "LANDLORD") {
+        let finalOrgId = invitation.organizationId;
+
+        // 如果邀請碼中沒有綁定組織，則建立新組織 (房東自創)
+        if (!finalOrgId) {
+          if (!organizationName) {
+            throw new Error("房東註冊需要提供組織名稱");
+          }
+          const newOrg = await tx.organization.create({
+            data: {
+              name: organizationName,
+              ownerId: user.id,
+            },
+          });
+          finalOrgId = newOrg.id;
+        }
+
+        // 建立成員關聯 (OWNER)
         await tx.userOrganization.create({
           data: {
             userId: user.id,
-            organizationId: invitation.organizationId,
+            organizationId: finalOrgId,
+            memberRole: "OWNER",
+          },
+        });
+      } else if (invitation.targetRole === "MANAGER") {
+        // MANAGER 加入現有組織
+        await tx.userOrganization.create({
+          data: {
+            userId: user.id,
+            organizationId: invitation.organizationId!,
             memberRole: "MANAGER",
           },
         });

@@ -7,7 +7,7 @@ import { randomBytes } from "crypto";
 /**
  * 生成邀請碼 API
  * POST /api/invitations/generate
- * Body: { organizationId: string, propertyId?: string, targetRole: "TENANT" | "MANAGER" }
+ * Body: { organizationId: string, propertyId?: string, targetRole: "LANDLORD" | "MANAGER" | "TENANT" }
  */
 export async function POST(req: Request) {
   try {
@@ -20,12 +20,18 @@ export async function POST(req: Request) {
 
     const { organizationId, propertyId, targetRole } = await req.json();
 
-    // 1.2 角色型權限細分：MANAGER 只能邀請 TENANT
+    // 1.2 角色型權限細分
     if ((session.user as any).role === "MANAGER" && targetRole === "MANAGER") {
       return NextResponse.json({ error: "代管人員無權邀請其他代管人員" }, { status: 403 });
     }
 
-    if (!organizationId || !targetRole) {
+    // 補充：只有 ADMIN 可以邀請 LANDLORD
+    if (targetRole === "LANDLORD" && (session.user as any).role !== "ADMIN") {
+      return NextResponse.json({ error: "只有系統管理員能邀請房東" }, { status: 403 });
+    }
+
+    // 參數驗證：非 LANDLORD 角色必須提供 organizationId
+    if (!targetRole || (targetRole !== "LANDLORD" && !organizationId)) {
       return NextResponse.json({ error: "缺少必要參數" }, { status: 400 });
     }
 
@@ -41,7 +47,7 @@ export async function POST(req: Request) {
       data: {
         code,
         inviterId: (session.user as any).id,
-        organizationId,
+        organizationId: organizationId || null,
         propertyId: propertyId || null,
         targetRole,
         expiresAt,

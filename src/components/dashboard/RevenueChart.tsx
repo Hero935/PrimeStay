@@ -38,8 +38,8 @@ export function RevenueChart({ data }: RevenueChartProps) {
   }
 
   return (
-    <div className="w-full mt-4 relative">
-      <ResponsiveContainer width="100%" height={300} minWidth={0}>
+    <div className="w-full h-[300px] mt-4 relative">
+      <ResponsiveContainer width="100%" height={300}>
         <AreaChart
           data={data}
           margin={{

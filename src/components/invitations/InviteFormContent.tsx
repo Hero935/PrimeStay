@@ -45,27 +45,7 @@ export function InviteFormContent({
 }: InviteFormContentProps) {
   return (
     <div className="grid gap-4 py-4">
-      {/* 管理員邀請房東時顯示組織選擇 */}
-      {targetRole === "LANDLORD" && organizations.length > 0 && (
-        <div className="grid gap-2">
-          <Label htmlFor="organization">選擇組織</Label>
-          <Select
-            value={selectedOrganizationId}
-            onValueChange={onOrganizationChange}
-          >
-            <SelectTrigger id="organization">
-              <SelectValue placeholder="請選擇邀請房東加入的組織" />
-            </SelectTrigger>
-            <SelectContent>
-              {organizations.map((org) => (
-                <SelectItem key={org.id} value={org.id}>
-                  {org.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
+      {/* 房東邀請採自定義組織模式，管理者邀請房東不再需要預選組織 */}
 
       {/* 房東邀請房客時顯示房源選擇 */}
       {targetRole === "TENANT" && (
@@ -102,7 +82,7 @@ export function InviteFormContent({
             <li>房客註冊後將自動建立租約並綁定至選擇的房源。</li>
           )}
           {targetRole === "LANDLORD" && (
-            <li>房東註冊後將獲得該組織的管理權限。</li>
+            <li>房東註冊後將自動建立新組織，並擁有該組織的所有管理權限。</li>
           )}
           {targetRole === "MANAGER" && (
             <li>代管人員將加入您的組織共同管理房源與租件。</li>

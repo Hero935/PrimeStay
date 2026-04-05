@@ -80,8 +80,8 @@ export function InviteDialog({
   }, [isOpen, fixedOrganizationId]);
 
   const handleGenerate = () => {
-    if (!selectedOrgId && targetRole === "LANDLORD") {
-      toast.error("請選擇要邀請進入的組織");
+    if (targetRole !== "LANDLORD" && !selectedOrgId) {
+      toast.error("缺少組織資訊");
       return;
     }
 
@@ -91,7 +91,7 @@ export function InviteDialog({
     }
 
     generate({
-      organizationId: selectedOrgId,
+      organizationId: selectedOrgId || undefined,
       targetRole,
       propertyId: targetRole === "TENANT" ? selectedPropId : undefined,
     });
@@ -107,8 +107,8 @@ export function InviteDialog({
           {targetRole === "TENANT" && "邀請新房客"}
         </DialogTitle>
         <DialogDescription>
-          {targetRole === "LANDLORD" 
-            ? "授權新的房東管理員存取特定組織。" 
+          {targetRole === "LANDLORD"
+            ? "邀請新夥伴成為房東。註冊時，房東將能建立其專屬的管理組織。"
             : "生成專屬邀請碼，讓對方註冊成為您的團隊成員或房客。"}
         </DialogDescription>
       </DialogHeader>
@@ -138,8 +138,8 @@ export function InviteDialog({
               取消
             </Button>
             <Button 
-              onClick={handleGenerate} 
-              disabled={isLoading || (targetRole === "LANDLORD" && !selectedOrgId)}
+              onClick={handleGenerate}
+              disabled={isLoading || (targetRole !== "LANDLORD" && !selectedOrgId)}
               className="bg-blue-600 hover:bg-blue-700"
             >
               {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}

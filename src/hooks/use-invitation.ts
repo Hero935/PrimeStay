@@ -7,7 +7,7 @@ import { toast } from "sonner";
  * 邀請碼生成的參數介面
  */
 interface GenerateParams {
-  organizationId: string;
+  organizationId?: string;
   targetRole: "LANDLORD" | "MANAGER" | "TENANT";
   propertyId?: string;
 }

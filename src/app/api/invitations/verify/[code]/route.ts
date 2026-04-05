@@ -40,8 +40,8 @@ export async function GET(
     return NextResponse.json({
       valid: true,
       role: invitation.targetRole,
-      organizationName: invitation.organization.name,
-      propertyAddress: invitation.property 
+      organizationName: invitation.organization?.name || null,
+      propertyAddress: invitation.property
         ? `${invitation.property.address} - ${invitation.property.roomNumber}`
         : null
     });

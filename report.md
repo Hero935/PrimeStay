@@ -31,6 +31,33 @@
 - `spec.md` (新增規範文件)
 - `readme.md` (更新架構描述)
 
+---
+# 房東邀請管理體驗優化完成報告 (2026-04-05)
+
+## 1. 錯誤現象描述
+在管理員端（Admin）邀請新房東時，點擊「生成邀請碼」後，原本預期會切換到顯示邀請碼並可供複製的畫面，但對話框卻會「很快」就關閉。
+
+## 2. 核心原因分析
+- **過早觸發回調**: 在 `InvitationsList.tsx` 中，`InviteDialog` 的 `onSuccess` 回調函數被設為 `() => window.location.reload()`。
+- **重新整理導致關閉**: 當邀請碼成功生成時，`useInvitation` hook 會立即執行 `onSuccess`。這導致頁面在使用者看到結果前就重新整理，進而關閉了對話框。
+
+## 3. 解決方案 (已實作)
+- **非同步列表更新**: 修改 `InvitationsList.tsx`，實作了 `fetchInvitations` 函式，用於在不重新整理整頁的情況下，透過 API 從後端重新取得最新的邀請列表數據。
+- **調整回調機制**: 將 `InviteDialog` 的 `onSuccess` 修改為調用 `fetchInvitations`。這確保了底層數據已更新（列表會即時反映新生成的邀請），但前端 UI 仍保持開啟狀態，讓使用者有足夠時間複製邀請碼。
+- **API 增強**: 擴展了 `GET /api/invitations` 路由，支援 `targetRole` 與 `includeUsed` 參數，使管理員端能靈活獲取所需的歷史紀錄。
+- **介面微調**: 參考房東端介面，移除了邀請對話框中重複的描述文字，使視覺傳達更精簡。
+
+## 4. 變更檔案
+- `src/app/api/invitations/route.ts`: 增強查詢參數支援。
+- `src/app/admin/invitations/InvitationsList.tsx`: 改為非同步更新模式。
+- `src/components/invitations/InviteDialog.tsx`: 優化描述內容。
+
+## 5. 效益評估
+- **提升易用性**: 解決了使用者「來不及複製」的問題，確保功能符合直覺。
+- **優化效能**: 使用局部更新取代全頁刷新，提供更流暢的操作手感。
+- **體驗一致性**: 讓 Admin 端的邀請體驗與 Landlord 端完全同步。
+
+---
 ## 4. 效益評估
 - **減少代碼量**: 成功移除舊有重複邏輯。
 - **易於維護**: 未來若需更改邀請碼效期或 API 參數，僅需修改一處 Hook。

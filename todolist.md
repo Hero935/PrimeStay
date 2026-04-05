@@ -27,3 +27,9 @@
 - [x] 重構 `src/app/landlord/page.tsx` 串接 Server Side 營收趨勢與「最近動態」數據
 - [x] 建立房東儀表板數據實作 Checkpoint (重要任務完成)
 - [x] 修復 Recharts ResponsiveContainer 在 Next.js 中的寬高計算警告 (-1/-1 錯誤)
+
+## 階段 6: 體驗優化 (Experience Polish)
+- [x] 修復 Admin 生成邀請碼後對話框過早關閉問題 (改為局部非同步更新)
+- [x] 調整 `InviteDialog` 冗餘描述文字
+- [x] 增強 `GET /api/invitations` 以支援管理員端靈活查詢 (targetRole, includeUsed)
+- [x] 建立房東邀請管理體驗優化 Checkpoint (重要任務完成)

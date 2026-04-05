@@ -14,7 +14,8 @@ interface Invitation {
   isUsed: boolean;
   expiresAt: Date | string;
   inviter: { name: string | null; email: string };
-  organization: { name: string };
+  organization: { name: string } | null;
+  targetRole: string;
 }
 
 interface Organization {
@@ -109,6 +110,25 @@ export function InvitationsList({
   };
 
   // 即時計算統計卡片數據
+  /**
+   * 重新獲取邀請列表數據
+   * 用於在生成新邀請後更新列表，而不需要重新整理整頁
+   */
+  const fetchInvitations = async () => {
+    try {
+      const response = await fetch("/api/invitations?targetRole=LANDLORD&includeUsed=true");
+      const data = await response.json();
+      if (data.success) {
+        setInvitations(data.data.map((inv: any) => ({
+          ...inv,
+          expiresAt: new Date(inv.expiresAt)
+        })));
+      }
+    } catch (error) {
+      console.error("更新列表失敗:", error);
+    }
+  };
+
   const stats = {
     total: invitations.length,
     accepted: invitations.filter((i) => i.isUsed).length,
@@ -132,11 +152,11 @@ export function InvitationsList({
           </div>
         </div>
 
-        <InviteDialog 
+        <InviteDialog
           targetRole="LANDLORD"
           organizations={organizations}
           triggerLabel="邀請新房東"
-          onSuccess={() => window.location.reload()}
+          onSuccess={fetchInvitations}
         />
       </div>
 
@@ -188,7 +208,7 @@ export function InvitationsList({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-bold text-slate-800 text-sm truncate">
-                          {inv.organization.name}
+                          {inv.organization?.name ?? (inv.targetRole === "LANDLORD" ? "新房東註冊 (待設定組織)" : "未指定組織")}
                         </span>
                         <Badge variant="secondary" className={`text-[10px] py-0 h-4 border-none ${status.className}`}>
                           {status.label}
