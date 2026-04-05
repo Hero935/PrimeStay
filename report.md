@@ -61,7 +61,9 @@
 ## 5. 登入 401 錯誤修正
 針對部署後 `admin@test.com` 登入 401 問題：
 - **行動**:
-    - **自動 Seed 策略調整**: 由於 Railway 的建置階段 (Build Phase) 無法存取內網資料庫位址，因此將 `prisma db seed` 從 `build` 腳本移至 `start` 腳本，確保在執行階段 (Runtime) 正確寫入初始帳號。
+    - **自動 DB 同步與 Seed 策略**:
+        - 由於 Railway 內網位址在建置期無法訪問，且新環境可能尚未建立資料表，因此將 `prisma db push` 與 `prisma db seed` 移至 `start` 腳本。
+        - 這確保每次啟動服務時，系統會先同步資料庫結構 (Push) 再寫入初始帳號 (Seed)。
     - 在 `src/lib/auth.ts` 加入詳細的登入診斷日誌，監控資料庫連線與用戶查詢狀態。
 - **叮嚀**: 請務必確認 Railway 變數 `NEXTAUTH_URL` 為正式網址。
 
