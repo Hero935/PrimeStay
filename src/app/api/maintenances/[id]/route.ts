@@ -8,9 +8,10 @@ import { NextResponse } from "next/server";
  */
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
     if (!session || ((session.user as any).role !== "LANDLORD" && (session.user as any).role !== "MANAGER")) {
       return NextResponse.json({ error: "只有房東或代管可以更新維修狀態" }, { status: 403 });
@@ -19,7 +20,7 @@ export async function PATCH(
     const { status, landlordReply } = await req.json();
 
     const updated = await prisma.maintenance.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         status,
         landlordReply,

@@ -13,7 +13,7 @@ import { NextRequest, NextResponse } from "next/server";
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getServerSession(authOptions);
 
@@ -22,8 +22,8 @@ export async function PATCH(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const { id: targetId } = await params;
   const adminId = (session.user as any).id;
-  const targetId = params.id;
 
   // 防止管理員停用自己的帳號
   if (adminId === targetId) {

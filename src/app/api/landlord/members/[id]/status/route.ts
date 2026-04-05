@@ -10,10 +10,10 @@ import { NextResponse } from "next/server";
  */
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getServerSession(authOptions);
-  const { id } = params;
+  const { id } = await params;
 
   // 權限驗證：僅允許 LANDLORD
   if (!session || (session.user as any).role !== "LANDLORD") {

@@ -33,8 +33,8 @@ PrimeStay/
 │   │   ├── landlord/   # 房東管理後台
 │   │   ├── tenant/     # 租客端介面
 │   │   └── (auth)/     # 登入與註冊流程
-│   ├── components/     # 共用 UI 組件
-│   ├── hooks/          # 自定義 React Hooks
+│   ├── components/     # 共用 UI 組件 (含通用邀請 Dialog、UI 庫)
+│   ├── hooks/          # 自定義 React Hooks (含 useInvitation 等狀態邏輯)
 │   └── lib/            # 工具函式與第三方庫配置 (Auth, Prisma, Cloudinary)
 ├── public/             # 靜態資源
 └── spec.md             # 系統功能規格說明書
@@ -46,6 +46,8 @@ PrimeStay/
 | :--- | :--- |
 | [`src/app/api/`](src/app/api) | 包含認證、房源、租約、帳單、邀請碼與維修等 API 邏輯 |
 | [`src/app/landlord/`](src/app/landlord) | 房東與代管專用的儀表板、房源管理、帳單審核頁面 |
+| [`src/hooks/use-invitation.ts`](src/hooks/use-invitation.ts) | 共通邀請邏輯 Hook，整合 API 請求與複製功能 |
+| [`src/components/invitations/`](src/components/invitations) | 模組化邀請組件，包含 Dialog、表單內容與結果顯示 |
 | [`src/app/tenant/`](src/app/tenant) | 租客專用的租約查看、繳費回報與報修頁面 |
 | [`src/lib/cloudinary.ts`](src/lib/cloudinary.ts) | Cloudinary SDK 配置與圖片處理工具 |
 | [`src/lib/auth.ts`](src/lib/auth.ts) | NextAuth 策略設定 (含 Role-based Session) |
