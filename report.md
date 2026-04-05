@@ -56,11 +56,13 @@
 ## 4. 變更檔案
 - `package.json`: 更新 `scripts` 區塊。
 - `tsconfig.json`: 排除 `prisma/seed.ts`。
-- `prisma/seed.ts`: 加入 `@ts-ignore`。
+- `prisma/seed.ts`: 加入 `@ts-ignore` 與偵錯日誌。
 
 ## 5. 登入 401 錯誤修正
 針對部署後 `admin@test.com` 登入 401 問題：
-- **行動**: 將 `prisma db seed` 加入建置流程，確保資料庫中存在管理員帳號。
+- **行動**:
+    - 將 `prisma db seed` 加入建置流程，確保資料庫中存在管理員帳號。
+    - 在 `src/lib/auth.ts` 加入詳細的登入診斷日誌，監控資料庫連線與用戶查詢狀態。
 - **叮嚀**: 請務必確認 Railway 變數 `NEXTAUTH_URL` 為正式網址。
 
 ---

@@ -29,6 +29,14 @@ export const authOptions: NextAuthOptions = {
         }
 
         console.log(`[Auth] 嘗試登入: ${credentials.email}`);
+        
+        try {
+          const userCount = await prisma.user.count();
+          console.log(`[Auth] 目前資料庫用戶總數: ${userCount}`);
+        } catch (dbErr: any) {
+          console.error(`[Auth] 資料庫連線異常: ${dbErr.message}`);
+          throw new Error("伺服器連線異常，請稍後再試");
+        }
 
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
@@ -36,7 +44,8 @@ export const authOptions: NextAuthOptions = {
 
         if (!user) {
           console.log(`[Auth] 找不到用戶: ${credentials.email}`);
-          throw new Error("找不到該用戶");
+          // 這裡拋出的錯誤訊息會顯示在 NextAuth 的 Error Query 中
+          throw new Error("找不到該用戶，請確認帳號是否正確");
         }
 
         if (!user.hashedPassword) {

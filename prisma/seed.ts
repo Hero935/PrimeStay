@@ -14,7 +14,8 @@ dotenv.config();
  * 資料庫種子資料腳本 (Prisma 7 驅動適配器版本)
  */
 async function main() {
-  console.log("Seed 腳本開始執行...");
+  console.log("--- Seed 腳本開始執行 ---");
+  console.log("環境變數檢查 - ADMIN_EMAIL:", process.env.ADMIN_EMAIL);
   
   if (!process.env.DATABASE_URL) {
     console.error("錯誤: 環境變數 DATABASE_URL 未定義");
