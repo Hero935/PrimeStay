@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { RevenueChart } from "@/components/dashboard/RevenueChart";
+import { formatDistanceToNow } from "date-fns";
+import { zhTW } from "date-fns/locale";
 
 /**
  * 房東/代管人員管理後台儀表板
@@ -90,6 +92,59 @@ export default async function LandlordDashboard() {
 
   const revenueValue = totalRevenue._sum.monthlyRent ? Number(totalRevenue._sum.monthlyRent).toLocaleString() : "0";
 
+  // 6. 營收趨勢數據 (最近 6 個月)
+  const lastSixMonths = [];
+  const now = new Date();
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    lastSixMonths.push({
+      start: new Date(d.getFullYear(), d.getMonth(), 1),
+      end: new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59),
+      label: d.toLocaleDateString("zh-TW", { month: "short" }),
+    });
+  }
+
+  const revenueStats = await Promise.all(
+    lastSixMonths.map(async (m) => {
+      const res = await prisma.billing.aggregate({
+        where: {
+          status: "COMPLETED",
+          periodEnd: { gte: m.start, lte: m.end },
+          contract: { property: propertyFilter }
+        },
+        _sum: { totalAmount: true }
+      });
+      return {
+        month: m.label,
+        amount: res._sum.totalAmount ? Number(res._sum.totalAmount) : 0
+      };
+    })
+  );
+
+  // 7. 最近動態 (從 AuditLog 抓取)
+  const recentLogs = await prisma.auditLog.findMany({
+    where: { organizationId: orgId },
+    take: 6,
+    orderBy: { createdAt: "desc" },
+    include: { user: { select: { name: true } } }
+  });
+
+  const actionIcons: Record<string, any> = {
+    INVITE_TENANT: Users,
+    PROPERTY_ASSIGNMENT: Building2,
+    CREATE_BILLING: Receipt,
+    MAINTENANCE_UPDATE: Wrench,
+    DEFAULT: History
+  };
+
+  const actionLabels: Record<string, string> = {
+    INVITE_TENANT: "邀請房客",
+    PROPERTY_ASSIGNMENT: "房源指派",
+    CREATE_BILLING: "產生帳單",
+    MAINTENANCE_UPDATE: "報修更新",
+    CANCEL_CONTRACT: "終止合約"
+  };
+
   const stats = [
     {
       title: "總預估營收",
@@ -149,37 +204,19 @@ export default async function LandlordDashboard() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        {/* 核心區塊：房東看趨勢，Manager 看待辦任務清單 */}
-        {role === "LANDLORD" ? (
-          <Card className="col-span-4">
-            <CardHeader>
-              <CardTitle>營收趨勢</CardTitle>
-              <CardDescription>最近 6 個月的租金收入分析</CardDescription>
-            </CardHeader>
-            <CardContent className="h-[300px] flex items-center justify-center border-2 border-dashed rounded-lg bg-slate-50/50 m-4">
-               <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                 <TrendingUp className="h-8 w-8 opacity-20" />
-                 <p>營收趨勢圖表 (房東專屬檢視)</p>
-               </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card className="col-span-4">
-            <CardHeader>
-              <CardTitle>房源維護狀況</CardTitle>
-              <CardDescription>您負責的房源目前的健康度</CardDescription>
-            </CardHeader>
-            <CardContent className="h-[300px] flex items-center justify-center border-2 border-dashed rounded-lg bg-slate-50/50 m-4">
-               <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                 <Building2 className="h-8 w-8 opacity-20" />
-                 <p>負責房源狀態概覽 (Manager 專屬檢視)</p>
-               </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* 核心區塊：營收趨勢圖 */}
+        <Card className="col-span-full md:col-span-1 lg:col-span-4">
+          <CardHeader>
+            <CardTitle>{role === "LANDLORD" ? "營收趨勢" : "負責房源營收趨勢"}</CardTitle>
+            <CardDescription>最近 6 個月的租金實收分析 (已核銷)</CardDescription>
+          </CardHeader>
+          <CardContent className="px-2 pb-4">
+            <RevenueChart data={revenueStats} />
+          </CardContent>
+        </Card>
 
         {/* 最近動態 / 異常告警 */}
-        <Card className="col-span-3">
+        <Card className="col-span-full md:col-span-1 lg:col-span-3">
           <CardHeader>
             <CardTitle>急需處理</CardTitle>
             <CardDescription>
@@ -201,19 +238,31 @@ export default async function LandlordDashboard() {
               <div className="mt-4 pt-4 border-t">
                 <p className="text-xs font-semibold uppercase text-muted-foreground mb-3">最近動態</p>
                 <div className="space-y-3">
-                  {[
-                    { title: "新報修單", detail: "系統自動指派", time: "3小時前", icon: Wrench },
-                    { title: "合約續約", detail: "房客已確認意向", time: "5小時前", icon: History },
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-3">
-                      <item.icon className="h-4 w-4 text-slate-400" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium leading-none">{item.title}</p>
-                        <p className="text-xs text-muted-foreground">{item.detail}</p>
-                      </div>
-                      <span className="text-[10px] text-muted-foreground">{item.time}</span>
-                    </div>
-                  ))}
+                  {recentLogs.length > 0 ? (
+                    recentLogs.map((log) => {
+                      const Icon = actionIcons[log.action] || actionIcons.DEFAULT;
+                      return (
+                        <div key={log.id} className="flex items-center gap-3">
+                          <div className="bg-slate-100 p-1.5 rounded-full">
+                            <Icon className="h-3.5 w-3.5 text-slate-500" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium leading-none truncate">
+                              {actionLabels[log.action] || log.action}
+                            </p>
+                            <p className="text-[11px] text-muted-foreground mt-1 truncate">
+                              由 {log.user.name || "系統"} 執行
+                            </p>
+                          </div>
+                          <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                            {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true, locale: zhTW })}
+                          </span>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <p className="text-xs text-muted-foreground text-center py-4">暫無最近動態</p>
+                  )}
                 </div>
               </div>
             </div>

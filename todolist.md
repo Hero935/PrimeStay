@@ -18,3 +18,12 @@
 - [x] 驗證 Landlord 邀請 Manager/Tenant 流程
 - [x] 更新 `readme.md` 描述新的組件結構
 - [x] 撰寫任務完成報告 `report.md`
+
+## 階段 5: 房東儀表板數據實作 (Dashboard Data Implementation)
+- [x] 更新 `docs/ui_design_spec.md` 營收趨勢與最近動態規格
+- [x] 更新 `spec.md` Dashboard 實作細節
+- [x] 建立 `GET /api/landlord/stats/revenue` API
+- [x] 修改 `RevenueChart.tsx` 以串接真實數據並加入動畫效果
+- [x] 重構 `src/app/landlord/page.tsx` 串接 Server Side 營收趨勢與「最近動態」數據
+- [x] 建立房東儀表板數據實作 Checkpoint (重要任務完成)
+- [x] 修復 Recharts ResponsiveContainer 在 Next.js 中的寬高計算警告 (-1/-1 錯誤)

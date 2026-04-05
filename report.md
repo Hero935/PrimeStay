@@ -68,3 +68,38 @@
 - **叮嚀**: 請務必確認 Railway 變數 `NEXTAUTH_URL` 為正式網址。
 
 ---
+# 房東儀表板數據實作完成報告 (2026-04-05)
+
+## 1. 任務背景
+房東儀表板 (Landlord Dashboard) 先前僅有靜態的 Placeholder 與寫死的假資料。為了提升產品專業度與數據即時性，需實作真實的營收統計與操作日誌動態。
+
+## 2. 實作變更摘要
+
+### 數據視覺化 (Data Visualization)
+- **實作營收趨勢 API**: 建立了 `/api/landlord/stats/revenue` 路由，按月份統計最近 6 個月狀態為 `COMPLETED` 的帳單總金額。
+- **動態圖表整合**: 重構 `RevenueChart.tsx` 組件，支援從伺服器端傳入的真實數據，並優化了 Tooltip 顯示格式與入場動畫效果。
+- **解決渲染警告**: 修正了 Recharts 在 Next.js 中常見的 `width(-1) and height(-1)` 警告。透過 `isMounted` 模式確保圖表組件僅在大於 0 的佈局尺寸就緒後才渲染於客戶端。
+
+### 實時動態系統 (Real-time Activities)
+- **日誌追蹤**: 串接 `AuditLog` 資料表，將組織內所有關鍵操作（邀請房客、指派房源、產生帳單、報修更新等）即時顯示在儀表板右側。
+- **UI 優化**: 使用 Lucide 圖標區分不同的動作類型，並利用 `date-fns` 的 `formatDistanceToNow` 提供人性化的相對時間顯示（如「3 分鐘前」）。
+
+### 權限與過濾 (RBAC & Filtering)
+- **角色區分**:
+    - **房東 (Landlord)**: 可查看組織內所有房源的營收總和與全部成員的動態。
+    - **代管人員 (Manager)**: 營收趨勢圖僅顯示其所負責房源的部分，符合權限最小化原則。
+
+## 3. 檔案變更清單
+- `src/app/api/landlord/stats/revenue/route.ts` (新增：營收統計 API)
+- `src/components/dashboard/RevenueChart.tsx` (重構：串接真實數據與優化 Tooltip)
+- `src/app/landlord/page.tsx` (重構：串接 Server Side Data 並實作「最近動態」元件)
+- `docs/ui_design_spec.md` (更新：營收圖表與日誌規格說明)
+- `spec.md` (更新：Dashboard 實作邏輯說明)
+- `todolist.md` (更新：完成進度標記)
+
+## 4. 效益評估
+- **數據透明化**: 房東能即時掌握每月實際入帳狀況。
+- **監督管理**: 透過最近動態，房東能有效對複數個代管人員進行非同步監督。
+- **體驗提升**: 從靜態 Placeholder 轉化為具備動畫與真實數據的互動式看板，大幅提升產品質感。
+
+---

@@ -85,23 +85,23 @@ sequenceDiagram
 
 ---
 
-## 5. 組件介面設計 (Component Interface)
+## 5. 營收趨勢與最近動態實作規格 (Dashboard Extensions Spec)
 
-### 5.1 `useInvitation` Hook
-負責封裝所有非同步邏輯。
-- **Input**: `onSuccess?`, `onError?`
-- **Output**:
-  - `generate(data: { organizationId, targetRole, propertyId? })`
-  - `inviteCode`: `string | null`
-  - `isLoading`: `boolean`
-  - `isCopied`: `boolean`
-  - `copyContent()`: `Function (複製格式化的邀請文字)`
+### 5.1 營收趨勢圖 (Revenue Trend)
+- **API 路由**: `GET /api/landlord/stats/revenue`
+- **邏輯**:
+  - 獲取目前組織最近 6 個月的 `Billing` 數據。
+  - 僅計算 `status: "COMPLETED"` 且 `totalAmount` 不為空的帳單。
+  - 按月分組，回傳格式為 `[{ month: string, amount: number }]`。
+- **組件**: 修改現有的 `src/components/dashboard/RevenueChart.tsx` 支援動態數據載入。
+  - **渲染優化**: 使用 `isMounted` 狀態確保圖表僅在客戶端掛載後渲染，避免 `ResponsiveContainer` 在 SSR 階段因無法取得寬高而產生 `-1` 警告。
 
-### 5.2 `InviteDialog` (Main Container)
-- **Props**:
-  - `targetRole`: `LANDLORD | MANAGER | TENANT`
-  - `organizationId?`: (可選) 房東端固定傳入，管理員端可由下拉選單決定
-  - `onSuccess?`: 生成成功後的報表更新回調
+### 5.2 最近動態 (Recent Activities)
+- **API 路由**: `GET /api/landlord/audit-logs`
+- **邏輯**:
+  - 獲取目前組織最近 10 筆 `AuditLog`。
+  - 包含 `user` (執行者) 與相關動態資訊。
+- **前端實作**: 在 `src/app/landlord/page.tsx` 進行伺服器端請求，並渲染至「最近動態」區塊。
 
 ---
 
@@ -110,3 +110,6 @@ sequenceDiagram
 2. [x] 建立 `src/components/invitations/InviteResultView.tsx` 顯示結果
 3. [x] 修改 `src/app/landlord/members/InviteMemberDialog.tsx`
 4. [x] 在 `src/app/admin/settings/` 建立觸發按鈕，取代舊有的長表單
+5. [ ] 建立 `GET /api/landlord/stats/revenue` API 獲取營收統計數據
+6. [ ] 修改 `RevenueChart.tsx` 以串接真實數據
+7. [ ] 修改 `src/app/landlord/page.tsx` 串接「最近動態」真實數據
