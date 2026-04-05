@@ -58,4 +58,9 @@
 - `tsconfig.json`: 排除 `prisma/seed.ts`。
 - `prisma/seed.ts`: 加入 `@ts-ignore`。
 
+## 5. 登入 401 錯誤修正
+針對部署後 `admin@test.com` 登入 401 問題：
+- **行動**: 將 `prisma db seed` 加入建置流程，確保資料庫中存在管理員帳號。
+- **叮嚀**: 請務必確認 Railway 變數 `NEXTAUTH_URL` 為正式網址。
+
 ---
