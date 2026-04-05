@@ -177,7 +177,7 @@ export default async function LandlordDashboard() {
   ];
 
   return (
-    <div className="space-y-8 pb-10">
+    <div className="space-y-8 pb-10 w-full px-6">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight">
           {role === "LANDLORD" ? "房東儀表板" : "代管工作台"}

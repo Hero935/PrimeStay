@@ -31,7 +31,7 @@ export default async function AdminInvitationsPage() {
   });
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="p-6 w-full">
       <InvitationsList 
         initialInvitations={invitations}
         organizations={organizations}

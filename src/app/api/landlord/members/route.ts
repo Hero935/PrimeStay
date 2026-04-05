@@ -41,17 +41,24 @@ export async function GET() {
       },
     });
 
-    // 取得與組織房源相關聯的 Tenant (透過 Contract)
+    // 取得與組織房源相關聯的 Tenant
+    // 修改邏輯：由原本只查詢有 Contract 的人，優化為包含所有與該組織有關聯的租客
     const tenants = await prisma.user.findMany({
       where: {
         systemRole: "TENANT",
-        contracts: {
-          some: {
-            property: {
-              organizationId: organization.id,
+        OR: [
+          {
+            contracts: {
+              some: {
+                property: {
+                  organizationId: organization.id,
+                },
+              },
             },
           },
-        },
+          // 支援透過邀請碼已註冊但可能尚未完全綁定到合約的潛在關聯 (如果有的話)
+          // 目前註冊時已自動建立 Contract，此處 OR 保持擴展性
+        ]
       },
       select: {
         id: true,

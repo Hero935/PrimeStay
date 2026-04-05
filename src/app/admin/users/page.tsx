@@ -29,7 +29,7 @@ export default async function AdminUsersPage() {
   }
 
   // 查詢所有用戶，依角色分類排序
-  // Re-compilation trigger: 2026-04-04 19:46
+  // Re-compilation trigger: 2026-04-05 12:35
   const users = await prisma.user.findMany({
     select: {
       id: true,
@@ -138,14 +138,15 @@ export default async function AdminUsersPage() {
               </div>
             ) : (
               nonAdminUsers.map((user, index) => {
-                // 取得組織名稱（房東看 organizations，代管/房客看 userOrganizations）
+                // 取得組織名稱並去重（合併作為 Owner 與作為成員的組織）
+                const allOrgNames = [
+                  ...user.organizations.map((o) => o.name),
+                  ...user.userOrganizations.map((uo) => uo.organization.name),
+                ];
+                const uniqueOrgNames = Array.from(new Set(allOrgNames));
                 const orgNames =
-                  user.organizations.length > 0
-                    ? user.organizations.map((o) => o.name).join(", ")
-                    : user.userOrganizations.length > 0
-                    ? user.userOrganizations
-                        .map((uo) => uo.organization.name)
-                        .join(", ")
+                  uniqueOrgNames.length > 0
+                    ? uniqueOrgNames.join(", ")
                     : "未加入組織";
 
                 return (

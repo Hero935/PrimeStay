@@ -132,7 +132,7 @@ export default async function AdminDashboardPage() {
   ];
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="p-4 lg:p-10 space-y-8 w-full overflow-x-hidden min-w-0">
       {/* 頁面標題 */}
       <div className="flex items-center gap-3">
         <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-slate-900 text-white">

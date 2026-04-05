@@ -26,6 +26,7 @@ enum SystemRole {
 enum OrgMemberRole {
   OWNER
   MANAGER
+  TENANT
 }
 
 enum PropertyStatus {

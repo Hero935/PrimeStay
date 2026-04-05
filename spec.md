@@ -1,133 +1,83 @@
-# 共通邀請功能組件規格文件 (Invitation System Spec)
+# 📋 整合式組織與用戶管理 (Integrated Org & User Management Tree) 規格文件
 
-## 1. 概述
-為了解決目前管理員端 (Admin) 與房東端 (Landlord) 邀請功能代碼重複與 UI 不一致的問題，我們將建立一套共通的邀請機制。
+## 1. 系統概述
+旨在提供一個直觀、高端且具備層級感的操作界面，將「組織、房東、房賃、代管人員、房客」五個維度整合於單一樹狀視圖中。系統會根據登入者的角色，動態過濾其可見的資料範圍。
 
-### 核心目標
-- **代碼複用**：將 API 請求、複製邏輯、狀態管理提取至公共層級。
-- **UI 一致性**：統一導向對話框 (Dialog) 模式流程，提升使用者體驗。
-- **維護性**：一致的驗證邏輯與過期處理。
+## 2. 業務邏輯與資料權限 (Data Visibility Matrix)
 
----
+| 角色 (Role) | 可見根節點 | 層級深度 | 權限範圍 |
+| :--- | :--- | :--- | :--- |
+| **ADMIN** | 所有 Organizations | 全展開 | 全系統維護、停權/恢復用戶。 |
+| **LANDLORD** | 所屬 Organization | 全展開 | 組織內資產與人員管理、指派 Manager。 |
+| **MANAGER** | 所屬 Organization | 僅顯示負責房源 & 房客 | 日常維運、查看所屬房客帳單/報修。 |
+| **TENANT** | (不採用樹狀管理) | N/A | 僅查看個人合約與帳單。 |
 
-## 2. 系統架構圖 (Component Structure)
+## 3. UI/UX 設計理念 (角色化一站式扁平管理)
 
-```mermaid
-graph TD
-    subgraph "Admin Side"
-        A[Admin Settings Page] -->|Trigger| B[Shared InviteDialog]
-    end
+### 3.1 PC 端 (Desktop Layout) - 主從式扁平索引介面
+- **左側身分清單 (Role-based Flat Index)**:
+    - 取消遞迴樹狀顯示，改為根據角色顯示對應的「核心管理清單」。
+    - **管理者 (Admin)**: 顯示全系統「房東列表」。
+    - **代管 (Manager)**: 顯示「授權房東列表」。
+    - **房東 (Landlord)**: 顯示「房源列表」。
+- **右側工作區內容 (Dynamic Workspace)**:
+    - 採用 **Tabs (頁籤)** 進行內容導航。
+    - **[組織中心]**: 顯示該組織的基本資料與資產現狀。
+    - **[用戶清單]**: 整合「房東、經理、房客」於單一列表，並透過角色標籤區分。
+- **狀態標籤 (Status Indicators)**:
+    - 🏢 組織：深金屬色調，顯示組織名稱。
+    - 👤 房東：藍色標章。
+    - 🏠 房源：
+        - 🟢 綠色：出租中。
+        - 🔵 藍色：閒置中。
+        - 🔴 紅色：維修中或有緊急報修。
+    - 🛠️ 代管：顯示所管轄房源數量。
+    - 🔑 房客：顯示合約到期倒數。
+- **停權狀態**: 若用戶狀態為 `SUSPENDED`，節點名稱顯示刪除線並以灰色半透明呈現。
 
-    subgraph "Landlord Side"
-        L[Member Management Page] -->|Trigger| B
-        P[Property Detail Page] -->|Trigger| B
-    end
+### 3.2 手機端 (Mobile/Responsive) - 觸控鑽取
+- **鑽取導航 (Drill-down Navigation)**: 點擊節點後滑入下一層級。
+- **響應式抽屜 (Bottom Drawer)**: 點擊節點從底部彈出詳細資訊與操作功能（如：催款、報修處理）。
 
-    subgraph "Shared Component Library"
-        B --> C[useInvitation Hook]
-        B --> D[RoleSelector]
-        B --> E[ContextSelector]
-        B --> F[InviteResultView]
-    end
+## 4. 技術架構 (UML)
 
-    C -->|API Request| G[/api/invitations/generate]
-```
+### 4.1 資料層級與過濾邏輯 (Sequence Diagram)
 
----
-
-## 3. 業務流程圖 (Business Flow)
-
-```mermaid
-flowchart TD
-    Start([開始邀請]) --> RoleCheck{判斷角色}
-    
-    RoleCheck -->|LANDLORD| SkipOrg[略過選擇組織 - 註冊時再設]
-    RoleCheck -->|MANAGER| AutoOrg[自動帶入目前組織]
-    RoleCheck -->|TENANT| SelectProp[選擇房源 Property]
-    
-    SkipOrg --> Generate[點擊生成邀請碼]
-    AutoOrg --> Generate
-    SelectProp --> Generate
-    
-    Generate --> API[呼叫 /api/invitations/generate]
-    API --> Success{成功?}
-    
-    Success -->|是| ShowCode[顯示邀請碼與複製按鈕]
-    Success -->|否| ShowError[顯示錯誤訊息]
-    
-    ShowCode --> Copy[複製內容至剪貼簿]
-    Copy --> End([結束])
-```
-
----
-
-## 4. 順序圖 (Sequence Diagram)
-
-### 4.1 邀請生成階段 (Invitation Generation)
 ```mermaid
 sequenceDiagram
-    participant User as 管理員/房東
-    participant Dialog as InviteDialog (UI)
-    participant Hook as useInvitation (Logic)
-    participant API as API Route
-
-    User->>Dialog: 點擊邀請按鈕
-    Dialog->>Dialog: 根據 targetRole 決定是否顯示組織/房源選擇
-    Note right of Dialog: LANDLORD 邀請無須選擇組織
-    User->>Dialog: 確認生成
-    Dialog->>Hook: trigger(params)
-    Hook->>API: POST /api/invitations/generate
-    API-->>Hook: 回傳 { success, code }
-    Hook-->>Dialog: 顯示結果
+    participant User as 使用者/管理員
+    participant Tree as Tree Component
+    participant API as API Route (/api/management/tree)
+    participant DB as PostgreDB (Prisma)
+    
+    User->>Tree: 進入管理台
+    Tree->>API: GET /api/management/tree
+    API->>API: 檢查登入者身份 (JWT)
+    alt ADMIN
+        API->>DB: 查詢 ALL Organizations + All Links
+    else LANDLORD
+        API->>DB: 查詢 Owned Organization + Sub-entities
+    else MANAGER
+        API->>DB: 僅查詢被指派的 Property + Tenants
+    end
+    DB-->>API: 返回資料
+    API-->>Tree: 返回扁平化資料清單 (Flat List JSON)
+    Tree-->>User: 渲染「戰略管理中樞 (Management Hub)」
 ```
 
-### 4.2 房東註冊與自動初始化階段 (Registration & Initialization)
+### 4.2 物件關聯圖 (ERD - 管理樹架構)
+
 ```mermaid
-sequenceDiagram
-    participant NewUser as 新房東
-    participant RegPage as 註冊頁面
-    participant RegAPI as 註冊 API
-    participant DB as 資料庫
-
-    NewUser->>RegPage: 輸入邀請碼
-    RegPage->>RegPage: 偵測到角色為 LANDLORD 且無預設組織
-    RegPage->>NewUser: 顯示「組織名稱」輸入框 (必填)
-    NewUser->>RegPage: 提交 Email/密碼/組織名稱
-    RegPage->>RegAPI: POST /api/auth/register (含 organizationName)
-    RegAPI->>DB: 1. 建立 User (LANDLORD)
-    RegAPI->>DB: 2. 建立 Organization (owner 為該 User)
-    RegAPI->>DB: 3. 建立 UserOrganization 關聯 (OWNER)
-    RegAPI->>DB: 4. 標記邀請碼已使用
-    RegAPI-->>RegPage: 註冊成功
+erDiagram
+    ORGANIZATION ||--o{ PROPERTY : "包含"
+    USER ||--o{ ORGANIZATION : "擁有者"
+    PROPERTY ||--o{ USER : "指派代管 (MANAGER)"
+    PROPERTY ||--o{ CONTRACT : "出租予"
+    CONTRACT ||--|| USER : "承租人 (TENANT)"
 ```
 
----
-
-## 5. 營收趨勢與最近動態實作規格 (Dashboard Extensions Spec)
-
-### 5.1 營收趨勢圖 (Revenue Trend)
-- **API 路由**: `GET /api/landlord/stats/revenue`
-- **邏輯**:
-  - 獲取目前組織最近 6 個月的 `Billing` 數據。
-  - 僅計算 `status: "COMPLETED"` 且 `totalAmount` 不為空的帳單。
-  - 按月分組，回傳格式為 `[{ month: string, amount: number }]`。
-- **組件**: 修改現有的 `src/components/dashboard/RevenueChart.tsx` 支援動態數據載入。
-  - **渲染優化**: 使用 `isMounted` 狀態確保圖表僅在客戶端掛載後渲染，避免 `ResponsiveContainer` 在 SSR 階段因無法取得寬高而產生 `-1` 警告。
-
-### 5.2 最近動態 (Recent Activities)
-- **API 路由**: `GET /api/landlord/audit-logs`
-- **邏輯**:
-  - 獲取目前組織最近 10 筆 `AuditLog`。
-  - 包含 `user` (執行者) 與相關動態資訊。
-- **前端實作**: 在 `src/app/landlord/page.tsx` 進行伺服器端請求，並渲染至「最近動態」區塊。
-
----
-
-## Tasks
-1. [x] 建立 `src/hooks/use-invitation.ts` 处理逻辑
-2. [x] 建立 `src/components/invitations/InviteResultView.tsx` 顯示結果
-3. [x] 修改 `src/app/landlord/members/InviteMemberDialog.tsx`
-4. [x] 在 `src/app/admin/settings/` 建立觸發按鈕，取代舊有的長表單
-5. [ ] 建立 `GET /api/landlord/stats/revenue` API 獲取營收統計數據
-6. [ ] 修改 `RevenueChart.tsx` 以串接真實數據
-7. [ ] 修改 `src/app/landlord/page.tsx` 串接「最近動態」真實數據
+## 5. UI 元件清單
+- `ManagementSidebar`: 管理樹的左側容器。
+- `CustomNodeRenderer`: 渲染不同類型節點的 icon 與文字細節。
+- `NodeActionToolbar`: 節點右鍵選單或 Hover 顯示的操作列。
+- `EntityDetailPanel`: 右側或手機底部的抽屜式詳情頁。

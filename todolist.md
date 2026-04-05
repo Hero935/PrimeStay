@@ -1,35 +1,42 @@
-# 邀請功能整合任務清單
+# 🚀 任務清單：整合式組織與用戶管理實作 (Integrated Tree Management)
 
-## 階段 1: 基礎邏輯與通用組件建立
-- [x] 建立 `src/hooks/use-invitation.ts`：整合 API 呼叫、複製邏輯與載入狀態
-- [x] 建立 `src/components/invitations/InviteResultView.tsx`：用於顯示生成後的邀請碼與複製按鈕
-- [x] 建立 `src/components/invitations/InviteFormContent.tsx`：負責渲染角色特定的選擇表單（如組織或房源）
+## Phase 1: 基礎架構與數據準備 (Backend)
+- [ ] 建立 `GET /api/admin/management/tree` 端點 (ADMIN 專用)
+- [ ] 建立 `GET /api/landlord/management/tree` 端點 (LANDLORD/MANAGER 專用)
+- [ ] 實作資料過濾邏輯：
+    - [ ] ADMIN: 遞迴查詢全系統所有 Organization, Property, Manager, Tenant。
+    - [ ] LANDLORD: 固定根節點為所屬 Organization，並載入底下所有資料。
+    - [ ] MANAGER: 只載入其負責的 Property 分支，隱藏其他無權限房源。
+- [ ] 統一 API 返回格式為 `React Arborist` 相容的 `children` 遞迴結構。
+- [ ] 撰寫 API 單元測試，確保 role-based filtering 正確。
 
-## 階段 2: 房東端 (Landlord) 重構
-- [x] 重構 `src/app/landlord/members/InviteMemberDialog.tsx`：使用通用 Hook 與組件
-- [x] 確保房員管理頁面功能正常
+## Phase 2: 管理樹 UI 組件開發 (Frontend - PC)
+- [ ] 安裝 `react-arborist` 函式庫
+- [ ] 建立 `ManagementTree` 主組件 (Next.js Client Component)
+- [ ] 實作 `CustomNodeRenderer`，視覺化區分：
+    - [ ] Organization (🏢)
+    - [ ] Landlord (👤)
+    - [ ] Property (🏠) - 串接狀態顯示 (綠/藍/紅)
+    - [ ] Manager (🛠️)
+    - [ ] Tenant (🔑) - 顯示合約倒數
+- [ ] 整合 `Shadcn UI` 的右側詳情面板 (Side Panel)
 
-## 階段 3: 管理員端 (Admin) 重構與整合
-- [x] 修改 `src/app/admin/settings/page.tsx`：將現有的 `GenerateLandlordInviteForm` 替換為觸發 `InviteDialog` 的按鈕
-- [x] 移除或廢棄原本的 `src/app/admin/settings/GenerateLandlordInviteForm.tsx`
+## Phase 3: 手機端響應式優化 (Frontend - Mobile)
+- [ ] 使用 `Responsive Drawer` (Vaul) 實作手機端的節點操作介面。
+- [ ] 優化手機橫向與縱向的樹狀層級展示邏輯 (由多欄改為鑽取模式)。
 
-## 階段 4: 測試與文件更新
-- [x] 驗證 Admin 邀請 Landlord 流程
-- [x] 驗證 Landlord 邀請 Manager/Tenant 流程
-- [x] 更新 `readme.md` 描述新的組件結構
-- [x] 撰寫任務完成報告 `report.md`
+## Phase 4: 高級互動功能
+- [ ] 實作節點搜尋與實時過濾功能。
+- [ ] 加入 `Framer Motion` 動態展開與收合動畫。
+- [ ] 實作節點右鍵選單 (Context Menu)：
+    - [ ] 快速停權/復權
+    - [ ] 快速發送簡訊/Email 給房客
+    - [ ] 指派 Manager。
 
-## 階段 5: 房東儀表板數據實作 (Dashboard Data Implementation)
-- [x] 更新 `docs/ui_design_spec.md` 營收趨勢與最近動態規格
-- [x] 更新 `spec.md` Dashboard 實作細節
-- [x] 建立 `GET /api/landlord/stats/revenue` API
-- [x] 修改 `RevenueChart.tsx` 以串接真實數據並加入動畫效果
-- [x] 重構 `src/app/landlord/page.tsx` 串接 Server Side 營收趨勢與「最近動態」數據
-- [x] 建立房東儀表板數據實作 Checkpoint (重要任務完成)
-- [x] 修復 Recharts ResponsiveContainer 在 Next.js 中的寬高計算警告 (-1/-1 錯誤)
+## Phase 5: 驗收與報告
+- [ ] 撰寫 `report.md` 最終報告。
+- [ ] 更新 `readme.md` 中的檔案描述與系統架構圖。
+- [ ] 建立里程碑 Checkpoint。
 
-## 階段 6: 體驗優化 (Experience Polish)
-- [x] 修復 Admin 生成邀請碼後對話框過早關閉問題 (改為局部非同步更新)
-- [x] 調整 `InviteDialog` 冗餘描述文字
-- [x] 增強 `GET /api/invitations` 以支援管理員端靈活查詢 (targetRole, includeUsed)
-- [x] 建立房東邀請管理體驗優化 Checkpoint (重要任務完成)
+---
+*狀態: [ ]待處理 [-]進行中 [x]已完成*

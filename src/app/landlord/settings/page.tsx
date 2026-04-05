@@ -59,13 +59,13 @@ export default function LandlordSettingsPage() {
   if (!orgData) return <div className="animate-pulse h-64 bg-slate-100 rounded-xl" />;
 
   return (
-    <>
+    <div className="w-full px-6">
       <div className="mb-8">
         <h1 className="text-2xl font-bold tracking-tight">組織設定</h1>
         <p className="text-slate-500">管理您的品牌資訊與組織基本資料</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pb-10">
         <Card className="md:col-span-2">
           <CardHeader>
             <CardTitle className="text-lg">基本資訊</CardTitle>
@@ -172,6 +172,6 @@ export default function LandlordSettingsPage() {
           </CardContent>
         </Card>
       </div>
-    </>
+    </div>
   );
 }

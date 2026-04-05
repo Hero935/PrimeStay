@@ -11,7 +11,7 @@ if (process.env.NODE_ENV !== "production") {
 /**
  * Prisma Client 實體管理
  * 符合 Prisma 7+ 配置規範，並整合 pg adapter
- * [Trigger Reload] 2026-04-05T11:44 - TLS Fix
+ * [Trigger Reload] 2026-04-05T12:38 - Enum Sync
  */
 
 // Aiven 需要 SSL 連線，若無 SSL 會導致連線失敗

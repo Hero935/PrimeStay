@@ -9,6 +9,7 @@ import { NextResponse } from "next/server";
  * 僅限 ADMIN 存取
  */
 export async function GET() {
+  // Re-compilation trigger: 2026-04-05 12:35
   const session = await getServerSession(authOptions);
 
   // 權限驗證：僅允許 ADMIN

@@ -56,6 +56,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     role === "ADMIN"
       ? [
           { title: "管理員儀表板", url: "/admin", icon: LayoutDashboard },
+          { title: "整合管理視圖", url: "/admin/management", icon: ShieldCheck },
           { title: "組織管理", url: "/admin/organizations", icon: Building2 },
           { title: "用戶管理", url: "/admin/users", icon: Users },
           { title: "房東邀請", url: "/admin/invitations", icon: Mail },
@@ -64,6 +65,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       : role === "LANDLORD"
         ? [
             { title: "房東儀表板", url: "/landlord", icon: LayoutDashboard },
+            { title: "資產關係樹", url: "/landlord/management", icon: ShieldCheck },
             { title: "房源管理", url: "/landlord/properties", icon: Building2 },
             { title: "成員管理", url: "/landlord/members", icon: Users },
             { title: "帳單核銷", url: "/landlord/billings", icon: Receipt },
