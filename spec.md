@@ -106,7 +106,7 @@ sequenceDiagram
 ---
 
 ## Tasks
-1. [ ] 建立 `src/hooks/use-invitation.ts` 处理逻辑
-2. [ ] 建立 `src/components/invitations/InviteResultView.tsx` 顯示結果
-3. [ ] 修改 `src/app/landlord/members/InviteMemberDialog.tsx`
-4. [ ] 在 `src/app/admin/settings/` 建立觸發按鈕，取代舊有的長表單
+1. [x] 建立 `src/hooks/use-invitation.ts` 处理逻辑
+2. [x] 建立 `src/components/invitations/InviteResultView.tsx` 顯示結果
+3. [x] 修改 `src/app/landlord/members/InviteMemberDialog.tsx`
+4. [x] 在 `src/app/admin/settings/` 建立觸發按鈕，取代舊有的長表單

@@ -1,3 +1,4 @@
+// @ts-ignore: PrismaClient is generated at build time
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 // 針對自簽憑證 TLS 問題的緊急修正
