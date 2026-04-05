@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && prisma db seed && next build",
-    "start": "next start",
+    "build": "prisma generate && next build",
+    "start": "prisma db seed && next start",
     "lint": "next lint",
     "postinstall": "prisma generate"
   },
