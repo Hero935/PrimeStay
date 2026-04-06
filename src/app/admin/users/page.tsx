@@ -44,13 +44,14 @@ export default async function AdminUsersPage() {
     <div className="flex-1 space-y-8 p-8 pt-6">
       {/* 1. 頁面標題與搜尋控制項 */}
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-mono font-bold tracking-tight text-slate-900 uppercase flex items-center gap-3">
-             <Users className="w-6 h-6 text-indigo-600" /> 全域成員註冊清冊 (Registry)
-          </h2>
-          <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">
-             全域行為治理與身份標籤監控系統
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-slate-900 text-white shadow-lg shadow-slate-200">
+            <Users className="w-5 h-5" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">用戶管理</h1>
+            <p className="text-sm text-slate-500">全域行為治理與身份標籤監控系統</p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
             <div className="relative group">

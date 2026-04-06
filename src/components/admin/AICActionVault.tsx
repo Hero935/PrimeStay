@@ -62,10 +62,10 @@ export function AICActionVault() {
       {/* 2. 緊急告警牆 (Critical Alerts) */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-[10px] font-bold uppercase tracking-[.15em] text-slate-500 flex items-center gap-2">
+          <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
             <ShieldAlert className="w-3 h-3 text-rose-500" /> 緊急風險告警
           </h3>
-          <Badge variant="outline" className="text-[9px] border-rose-500/20 text-rose-500 bg-rose-500/5 rounded-full px-1.5 h-4">
+          <Badge variant="outline" className="text-[9px] border-rose-100 text-rose-600 bg-rose-50 font-medium rounded-full px-1.5 h-4">
             3 則新訊
           </Badge>
         </div>
@@ -92,7 +92,7 @@ export function AICActionVault() {
       {/* 3. 最近稽核脈動 (Live Pulse) */}
       <div className="flex-1 flex flex-col space-y-4 overflow-hidden">
         <div className="flex items-center justify-between">
-          <h3 className="text-[10px] font-bold uppercase tracking-[.15em] text-slate-500 flex items-center gap-2">
+          <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
             <History className="w-3 h-3" /> 系統審計脈動 (實時)
           </h3>
           <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -131,11 +131,11 @@ function AlertItem({ type, title, desc }: { type: 'error' | 'warning' | 'info', 
   }[type];
 
   return (
-    <div className={cn("p-3 rounded-xl border text-xs group cursor-pointer hover:scale-[1.02] transition-transform shadow-sm", styles)}>
-      <div className="font-bold flex items-center justify-between uppercase text-[10px] mb-1 text-slate-800">
+    <div className={cn("p-3 rounded-xl border text-xs group cursor-pointer hover:bg-white transition-all shadow-sm", styles)}>
+      <div className="font-bold flex items-center justify-between uppercase text-[10px] tracking-wide mb-1 text-slate-800">
         {title} <ExternalLink className="w-2.5 h-2.5 opacity-30 group-hover:opacity-100" />
       </div>
-      <div className="opacity-70 leading-relaxed tracking-tight">{desc}</div>
+      <div className="text-slate-600 font-normal leading-relaxed text-[11px]">{desc}</div>
     </div>
   );
 }
@@ -144,11 +144,11 @@ function AuditLogItem({ action, user, target, time }: { action: string, user: st
   return (
     <div className="relative pl-4 pb-4 border-l border-slate-100 last:pb-0">
       <div className="absolute -left-[6.5px] top-0 w-3 h-3 rounded-full bg-white border-2 border-slate-200" />
-      <div className="text-[10px] font-mono text-indigo-600 font-bold mb-0.5">{action}</div>
-      <div className="text-[10px] text-slate-600">
-        <span className="text-slate-900 font-medium">{user}</span> 操作於 <span className="text-slate-700">{target}</span>
+      <div className="text-[10px] font-mono text-indigo-600 font-bold tracking-tight mb-0.5">{action}</div>
+      <div className="text-[10px] text-slate-500 font-medium leading-tight">
+        <span className="text-slate-900 font-bold">{user}</span> <span className="text-[9px] text-slate-400">操作於</span> <span className="text-slate-800 font-semibold">{target}</span>
       </div>
-      <div className="text-[9px] text-slate-400 mt-1">{time}</div>
+      <div className="text-[9px] text-slate-400 font-mono mt-1 font-semibold">{time}</div>
     </div>
   );
 }

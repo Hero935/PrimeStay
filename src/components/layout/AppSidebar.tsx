@@ -14,6 +14,7 @@ import {
   Users,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
+import { cn } from "@/lib/utils";
 
 import {
   Sidebar,
@@ -56,11 +57,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navItems =
     role === "ADMIN"
       ? [
-          { title: "管理員儀表板", url: "/admin", icon: LayoutDashboard },
-          { title: "整合管理視圖", url: "/admin/management", icon: ShieldCheck },
+          { title: "管理總覽", url: "/admin", icon: LayoutDashboard },
+          { title: "整合視圖", url: "/admin/management", icon: ShieldCheck },
           { title: "組織管理", url: "/admin/organizations", icon: Building2 },
           { title: "用戶管理", url: "/admin/users", icon: Users },
-          { title: "房東邀請", url: "/admin/invitations", icon: Mail },
+          { title: "邀請系統", url: "/admin/invitations", icon: Mail },
           { title: "系統設定", url: "/admin/settings", icon: Settings },
         ]
       : role === "LANDLORD"
@@ -88,13 +89,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-4 py-3">
-          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold">
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-slate-100/50 mb-2">
+          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-indigo-600 text-white font-black shadow-lg shadow-indigo-200">
             P
           </div>
-          <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-            <span className="truncate font-semibold uppercase tracking-wider">PrimeStay</span>
-            <span className="truncate text-xs text-muted-foreground">高端租務代管</span>
+          <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden ml-1">
+            <span className="truncate font-black uppercase tracking-[.2em] text-slate-900 text-[11px]">PrimeStay</span>
+            <span className="truncate text-[9px] text-slate-400 font-bold uppercase tracking-widest">AIC v3.0 Core</span>
           </div>
         </div>
       </SidebarHeader>
@@ -110,7 +111,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               >
                 <Link href={item.url}>
                   <item.icon className="size-5" />
-                  <span className="font-medium group-data-[collapsible=icon]:hidden">{item.title}</span>
+                  <span className="font-semibold group-data-[collapsible=icon]:hidden">{item.title}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
