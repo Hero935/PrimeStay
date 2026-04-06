@@ -1,65 +1,53 @@
-# 🏠 PrimeStay - 專業房產租賃管理平台 (SaaS 版)
+# PrimeStay Admin Intelligence & Command (AIC) v3
 
-PrimeStay 是一款專為房東、代管業者設計的一站式房務管理系統。提供靈活的 SaaS 訂閱模型，讓管理從一間套房成長到大型代管公司都能得心應手。
+## 專案描述
+PrimeStay AIC v3 是 PrimeStay 租賃平台的管理端核心治理系統。本系統採用最新的「戰略診斷」架構，將傳統的後台管理介面提升為具備實時監控、成本預警與全域治理能力的戰略中樞。介面設計遵循「零滾動 (Zero-Scroll)」原則，確保管理員在 100vh 的單一視野內即可掌握全平台的營運脈動。
 
-## 🚀 核心功能 (Featured Capabilities)
-
-*   **多層級角色管理 (RBAC)**: 支援系統管理員 (Admin)、房東 (Landlord)、代管人員 (Manager) 與房客 (Tenant)。
-*   **SaaS 訂閱模型**: 基於組織 (Organization) 的計費邏輯，包含 Free、Starter、Pro 三種方案，自動實作房源配額限制。
-*   **公開房源探索**: 提供未登入用戶瀏覽公開房源，並具備敏感資訊遮蔽保護。
-*   **安全 API 防護**: 內建 `withAuth` 權限守衛，即時攔截停權帳號與非法越權存取。
-*   **智能分配系統**: 房東可靈活將房源管理權限指派給特定的代管人員。
-
-## 🛠 使用技術 (Tech Stack)
-
-*   **框架**: Next.js 15+ (App Router)
-*   **資料庫**: PostgreSQL (透過 Prisma ORM)
-*   **身份驗證**: NextAuth.js
-*   **UI 元件**: Tailwind CSS + Shadcn UI + Lucide Icons
-*   **圖片託管**: Cloudinary (具備簽名安全上傳)
-
-## 📁 檔案結構 (Project Structure)
-
+## 檔案結構
 ```text
-src/
-├── app/
-│   ├── api/             # API 路由
-│   │   ├── properties/  # 房源管理與詳情
-│   │   └── user/        # 用戶組織與方案升級
-│   ├── properties/      # 公開展示頁面 (Explore, Detail)
-│   ├── landlord/        # 房東/代管專屬後台
-│   └── pricing/         # 方案訂閱選擇頁面
-├── components/          # 共享 UI 元件
-├── hooks/               # 自定義 React Hooks
-└── lib/                 # 工具函式 (Prisma, API Guards)
+c:\Scorpio\projects\PrimeStay
+├── docs/                      # 系統開發與設計規範文件
+│   ├── admin_v2_design_spec.md # AIC v3 治理與視覺詳盡規範
+│   └── ui_design_spec.md      # 全平台通用 UI/UX 規範
+├── src/
+│   ├── app/admin/             # Admin 模組路由與頁面
+│   ├── components/admin/      # AIC v3 特有高密度 UI 組件
+│   └── components/invitations/# 統一邀請系統組件
+├── spec.md                    # 組織與用戶管理技術規格
+├── todolist.md                # 開發任務追蹤清單
+├── report.md                  # 任務執行與階段完成報告
+└── readme.md                  # 專案總覽說明 (本檔案)
 ```
 
-## 📋 檔案清單與說明
+## 使用技術
+- **Frontend**: Next.js 14 (App Router), Tailwind CSS
+- **UI Architecture**: shadcn/ui (Radix UI), Lucide Icons
+- **Data Visualization**: Recharts (用於戰略熱圖與脈動圖)
+- **State Management**: React Hooks (useState, useMemo)
+- **Security**: NextAuth.js (角色基於系統權法防護)
+- **Database**: PostgreSQL with Prisma ORM
 
-| 檔案名稱 | 說明 |
+## 檔案清單說明
+| 檔案路徑 | 說明 |
 | :--- | :--- |
-| `src/lib/api-guards.ts` | 通用 API 權限包裝器，負責登入、角色與狀態檢查。 |
-| `src/app/properties/explore/page.tsx` | 公開房源探索中心。 |
-| `src/app/properties/[id]/page.tsx` | 混合權限房源詳情頁，訪客僅能看到非敏感資訊。 |
-| `src/app/pricing/page.tsx` | 方案購買與升級模擬頁面。 |
-| `src/components/layout/PlanUsageProgress.tsx` | 用於 Sidebar 的方案配額監控元件。 |
-| `src/app/api/user/organizations/upgrade/route.ts` | 方案升級後的資料同步 API。 |
+| `src/components/admin/AdminAICShell.tsx` | AIC v3 核心三欄式布局殼層。 |
+| `src/components/admin/AICDiagnostics.tsx` | 包含 MRR、DB 脈動、出租率熱圖等診斷組件。 |
+| `src/components/admin/AICActionVault.tsx` | 右側命令與告警面板，整合統一邀請系統。 |
+| `src/app/admin/layout.tsx` | Admin 路由層級配置，包含側邊欄預設狀態設置。 |
 
-## ⚙️ 安裝與執行 (Installation)
-
-1. **環境變數設定**: 複製 `.env.example` 為 `.env` 並填寫資料庫連結、NextAuth 密鑰與 Cloudinary 配置。
-2. **安裝依賴**:
-   ```bash
+## 安裝及執行方式
+1. **依賴安裝**:
+   ```powershell
    npm install
    ```
-3. **資料庫迁移**:
-   ```bash
+2. **資料庫同步 (重要)**:
+   由於涉及到 `Organization.plan` 等新欄位，請執行資料庫推動以同步 Schema：
+   ```powershell
    npx prisma db push
    ```
-4. **啟動開發環境**:
-   ```bash
+3. **啟動開發伺服器**:
+   ```powershell
    npm run dev
    ```
-
----
-*本案已建立 Checkpoint: 完成 SaaS 基礎建設與公開瀏覽閉環。*
+4. **進入管理介面**:
+   以具備 `ADMIN` 角色的帳號登入後，造訪 `/admin` 即可進入 AIC v3 治理中樞。

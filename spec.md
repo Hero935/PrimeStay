@@ -18,7 +18,7 @@
 詳見 [`docs/admin_v2_design_spec.md`](docs/admin_v2_design_spec.md)。
 - **設計目標**: 費用與營收監控、生態健康診斷 (出租率/訪客流量)、零滾動 (Zero-Scroll)。
 - **四大監控維度**: 成本總額 (DB/Media)、收益總額 (MRR)、出租效能 (Occupancy)、獲客流量 (Visitor Traffic)。
-- **視覺風格**: 黑曜石戰略儀表板 (Obsidian Dark)，採用嵌入式微型圖表 (Sparklines) 提升資訊密度。
+- **視覺風格**: 明亮專業戰略面板 (Bright Professional)，配合房東端 UI 配色 (Slate/White)，採用嵌入式微型圖表 (Sparklines) 提升資訊密度。
 - **治理模型**: 具備全平台成員一鍵停權與強制訂閱重置權限。
 - **狀態標籤 (Status Indicators)**:
     - 🏢 組織：深金屬色調，顯示組織名稱。

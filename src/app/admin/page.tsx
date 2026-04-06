@@ -49,16 +49,16 @@ export default async function AdminDashboardPage() {
       {/* 1. 頂部戰略標題 */}
       <div className="flex items-center justify-between space-y-2">
         <div>
-          <h2 className="text-2xl font-mono font-bold tracking-tight text-slate-100 uppercase">
-            AIC Command Center <span className="text-indigo-500 font-black">v3.0.4</span>
+          <h2 className="text-2xl font-mono font-bold tracking-tight text-slate-900 uppercase">
+            AIC 戰略指揮中心 <span className="text-indigo-600 font-black">v3.0.4</span>
           </h2>
           <div className="flex items-center gap-4 mt-1">
             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">
-              Strategic Diagnostic Interface
+              系統戰略診斷介面 (Strategic Diagnostic Interface)
             </p>
             <div className="flex items-center gap-1.5 overflow-hidden">
                <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
-               <span className="text-[9px] text-emerald-500/80 font-mono">SYS_OK: 242ms</span>
+               <span className="text-[9px] text-emerald-500/80 font-mono">系統正常: 242ms</span>
             </div>
           </div>
         </div>
@@ -75,29 +75,29 @@ export default async function AdminDashboardPage() {
         <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-slate-500" />
-                <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400">Recent Node Activity</h2>
+                <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400">最近組織節點動態</h2>
             </div>
             <Link href="/admin/organizations" className="group flex items-center gap-1 text-[10px] text-slate-500 hover:text-indigo-400 transition-colors">
-                VIEW GLOBAL REGISTRY <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                查看全域註冊表項 <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
             </Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
           {organizations.map((org) => (
-            <Card key={org.id} className="bg-[#0F172A]/20 border-slate-800/50 p-4 hover:border-slate-700 transition-all cursor-pointer group">
-               <div className="text-[9px] text-slate-600 font-black mb-2 uppercase truncate">{org.owner.name}</div>
-               <div className="text-[13px] font-bold text-slate-200 mb-3 truncate group-hover:text-indigo-300 transition-colors">{org.name}</div>
+            <Card key={org.id} className="bg-white border-slate-200 p-4 hover:border-indigo-500/50 transition-all cursor-pointer group shadow-sm">
+               <div className="text-[9px] text-slate-400 font-black mb-2 uppercase truncate">{org.owner.name}</div>
+               <div className="text-[13px] font-bold text-slate-800 mb-3 truncate group-hover:text-indigo-600 transition-colors">{org.name}</div>
                <div className="flex gap-2">
                   <div className="flex-1 flex flex-col gap-1">
-                     <span className="text-[8px] text-slate-600 font-bold uppercase">PROPS</span>
-                     <span className="text-xs font-mono text-slate-400">{org._count.properties}</span>
+                     <span className="text-[8px] text-slate-400 font-bold uppercase">物業資產</span>
+                     <span className="text-xs font-mono text-slate-600">{org._count.properties}</span>
                   </div>
                   <div className="flex-1 flex flex-col gap-1">
-                     <span className="text-[8px] text-slate-600 font-bold uppercase">NODES</span>
-                     <span className="text-xs font-mono text-slate-400">{org._count.members}</span>
+                     <span className="text-[8px] text-slate-400 font-bold uppercase">成員節點</span>
+                     <span className="text-xs font-mono text-slate-600">{org._count.members}</span>
                   </div>
                   <div className="shrink-0 flex items-end pb-0.5">
-                     <Badge className="bg-emerald-500/10 text-emerald-500 text-[8px] h-3.5 px-1 border-emerald-500/20">LIVE</Badge>
+                     <Badge className="bg-emerald-500/10 text-emerald-500 text-[8px] h-3.5 px-1 border-emerald-500/20">營運中</Badge>
                   </div>
                </div>
             </Card>

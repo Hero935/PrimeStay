@@ -29,8 +29,8 @@ export default async function AdminLayout({
   }
 
   return (
-    <SidebarProvider defaultOpen={false}>
-      <AdminAICShell 
+    <SidebarProvider defaultOpen={true}>
+      <AdminAICShell
         sidebar={<AppSidebar />}
         actionVault={<AICActionVault />}
       >
