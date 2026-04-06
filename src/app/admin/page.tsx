@@ -40,14 +40,14 @@ export default async function AdminDashboardPage() {
     // 查找出租率預警組織
     prisma.organization.findMany({
         where: { properties: { some: {} } },
-        take: 3
+        take: 5
     })
   ]);
 
   return (
-    <div className="flex-1 space-y-8 p-8 pt-6">
+    <div className="flex-1 space-y-6 lg:space-y-8 p-0 lg:p-8 pt-2 lg:pt-6">
       {/* 1. 頂部戰略標題 */}
-      <div className="flex items-center justify-between space-y-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0 px-4 lg:px-0">
         <div>
           <h2 className="text-2xl font-bold tracking-tight flex items-baseline gap-2">
             <span className="text-indigo-600">AIC</span>
@@ -56,7 +56,7 @@ export default async function AdminDashboardPage() {
           </h2>
           <div className="flex items-center gap-4 mt-1">
             <p className="text-sm text-slate-500 font-medium tracking-normal">
-              系統全域治理與戰略診斷介面 (STRATEGIC DIAGNOSTIC INTERFACE)
+              系統全域治理與戰略診斷介面
             </p>
             <div className="flex items-center gap-1.5 overflow-hidden bg-emerald-50/50 px-2 py-0.5 rounded-full border border-emerald-200">
                <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -73,18 +73,18 @@ export default async function AdminDashboardPage() {
       <AICHealthHeatmap />
 
       {/* 4. 底層組織監控 Grid (High-Density List) */}
-      <div className="grid grid-cols-1 gap-4">
-        <div className="flex items-center justify-between">
+      <div className="grid grid-cols-1 gap-4 mt-6 lg:mt-0">
+        <div className="flex items-center justify-between px-4 lg:px-0">
             <div className="flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-slate-400" />
                 <h2 className="text-[10px] font-bold uppercase tracking-wider text-slate-400">最近組織節點動態</h2>
             </div>
-            <Link href="/admin/organizations" className="group flex items-center gap-1 text-[10px] font-medium text-slate-500 hover:text-indigo-600 transition-colors">
-                查看全域註冊表項 <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+            <Link href="/admin/organizations" className="group flex items-center gap-1 text-[10px] font-medium text-slate-500 hover:text-indigo-600 transition-colors bg-white lg:bg-transparent p-1.5 lg:p-0 rounded-md border lg:border-none shadow-sm lg:shadow-none">
+                查看全域項目 <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
             </Link>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 px-4 lg:px-0">
           {organizations.map((org) => (
             <Card key={org.id} className="bg-white border-slate-100 p-4 hover:border-indigo-500/50 transition-all cursor-pointer group shadow-sm">
                <div className="text-[10px] text-slate-400 font-bold mb-2 uppercase truncate tracking-wider">{org.owner.name}</div>

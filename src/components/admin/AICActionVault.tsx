@@ -4,16 +4,23 @@
  */
 "use client";
 
-import React, { useState } from "react";
-import { Card } from "@/components/ui/card";
+import React, { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Plus, Search, ExternalLink, ShieldAlert, History } from "lucide-react";
+import { Plus, Search, ExternalLink, ShieldAlert, History as HistoryIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { InviteDialog } from "@/components/invitations/InviteDialog";
 
 export function AICActionVault() {
   const [activeTab, setActiveTab] = useState<"LANDLORD" | "MANAGER" | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery) return;
+    // 導向用戶管理頁面並帶入搜尋參數
+    window.location.href = `/admin/users?search=${encodeURIComponent(searchQuery)}`;
+  };
 
   return (
     <div className="flex flex-col h-full space-y-8 pr-1">
@@ -33,13 +40,15 @@ export function AICActionVault() {
 
       {/* 1. 全域搜尋與指令入口 */}
       <div className="space-y-4">
-        <div className="relative group">
+        <form onSubmit={handleSearch} className="relative group">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
           <input
-            placeholder="全域指令 / 搜尋 (Cmd+K)"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="全域指令 / 搜尋 (用戶)"
             className="w-full bg-white border border-slate-200 rounded-xl py-2 pl-10 pr-4 text-xs font-mono text-slate-900 focus:outline-none focus:border-indigo-500/50 transition-all placeholder:text-slate-400 font-sans"
           />
-        </div>
+        </form>
         
         <div className="grid grid-cols-2 gap-2">
           <Button
@@ -66,25 +75,15 @@ export function AICActionVault() {
             <ShieldAlert className="w-3 h-3 text-rose-500" /> 緊急風險告警
           </h3>
           <Badge variant="outline" className="text-[9px] border-rose-100 text-rose-600 bg-rose-50 font-medium rounded-full px-1.5 h-4">
-            3 則新訊
+            狀態正常
           </Badge>
         </div>
         
         <div className="space-y-2">
           <AlertItem
-            type="error"
-            title="資料庫負載飽和"
-            desc="數據表 'AuditLog' 已超出 90% 的索引限制。"
-          />
-          <AlertItem
-            type="warning"
-            title="低出租率告警"
-            desc="組織 'PrimeStay-City' 出租率跌破 40% 臨界值。"
-          />
-          <AlertItem
             type="info"
-            title="SaaS 訂閱即將到期"
-            desc="5 個高級實體將於今晚進入寬限期。"
+            title="系統穩定"
+            desc="所有核心服務目前運作正常，無掛起任務。"
           />
         </div>
       </div>
@@ -93,34 +92,56 @@ export function AICActionVault() {
       <div className="flex-1 flex flex-col space-y-4 overflow-hidden">
         <div className="flex items-center justify-between">
           <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-            <History className="w-3 h-3" /> 系統審計脈動 (實時)
+            <HistoryIcon className="w-3 h-3" /> 系統審計脈動 (實時)
           </h3>
           <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
         </div>
 
         <div className="flex-1 overflow-y-auto space-y-4 custom-scrollbar pr-2 scroll-smooth">
-          <AuditLogItem
-            action="合約簽署完成"
-            user="Landlord-A"
-            target="合約 #812"
-            time="2 分鐘前"
-          />
-          <AuditLogItem
-            action="帳單逾期預警"
-            user="System-Job"
-            target="發票 #990"
-            time="12 分鐘前"
-          />
-          <AuditLogItem
-            action="全域封禁執行"
-            user="Admin-Prime"
-            target="用戶: BadActor"
-            time="45 分鐘前"
-          />
+          <LiveAuditStream />
         </div>
       </div>
     </div>
   );
+}
+
+function LiveAuditStream() {
+    const [logs, setLogs] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchLogs = () => {
+            fetch("/api/admin/stats", { method: "POST" })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.logs) setLogs(data.logs);
+                    setLoading(false);
+                })
+                .catch(err => console.error("Failed to fetch logs:", err));
+        };
+
+        fetchLogs();
+        const timer = setInterval(fetchLogs, 30000); // 30秒更新一次
+        return () => clearInterval(timer);
+    }, []);
+
+    if (loading) return <div className="text-[10px] text-slate-400">正在接入審計脈動...</div>;
+
+    return (
+        <div className="space-y-4">
+            {logs.length > 0 ? logs.map((log) => (
+                <AuditLogItem
+                    key={log.id}
+                    action={log.action}
+                    user={log.user?.name || "Unknown"}
+                    target={`${log.targetType}: ${log.targetId?.slice(0, 8) || "N/A"}`}
+                    time={new Date(log.createdAt).toLocaleTimeString()}
+                />
+            )) : (
+                <div className="text-[10px] text-slate-400 mt-4 text-center">目前尚無稽核紀錄</div>
+            )}
+        </div>
+    );
 }
 
 function AlertItem({ type, title, desc }: { type: 'error' | 'warning' | 'info', title: string, desc: string }) {
@@ -142,7 +163,7 @@ function AlertItem({ type, title, desc }: { type: 'error' | 'warning' | 'info', 
 
 function AuditLogItem({ action, user, target, time }: { action: string, user: string, target: string, time: string }) {
   return (
-    <div className="relative pl-4 pb-4 border-l border-slate-100 last:pb-0">
+    <div className="relative pl-4 pb-4 border-l border-slate-100 last:pb-0 group/item">
       <div className="absolute -left-[6.5px] top-0 w-3 h-3 rounded-full bg-white border-2 border-slate-200" />
       <div className="text-[10px] font-mono text-indigo-600 font-bold tracking-tight mb-0.5">{action}</div>
       <div className="text-[10px] text-slate-500 font-medium leading-tight">

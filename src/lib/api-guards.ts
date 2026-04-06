@@ -26,7 +26,7 @@ export function withAuth(
       // 2. 檢查用戶狀態 (從資料庫獲取最新狀態)
       const user = await prisma.user.findUnique({
         where: { id: (session.user as any).id },
-        select: { status: true, role: true }
+        select: { status: true, systemRole: true }
       });
 
       if (!user) {
@@ -34,14 +34,14 @@ export function withAuth(
       }
 
       if (user.status === "SUSPENDED") {
-        return NextResponse.json({ 
-          error: "您的帳號已被停權，請聯繫管理員。", 
-          isSuspended: true 
+        return NextResponse.json({
+          error: "您的帳號已被停權，請聯繫管理員。",
+          isSuspended: true
         }, { status: 403 });
       }
 
       // 3. 檢查角色權限
-      if (allowedRoles && !allowedRoles.includes(user.role as Role)) {
+      if (allowedRoles && !allowedRoles.includes(user.systemRole as any)) {
         return NextResponse.json({ error: "權限不足，您的角色無法執行此操作。" }, { status: 403 });
       }
 

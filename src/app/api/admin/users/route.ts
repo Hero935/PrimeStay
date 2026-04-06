@@ -8,7 +8,10 @@ import { NextResponse } from "next/server";
  * 取得所有用戶列表（含角色與帳號狀態）
  * 僅限 ADMIN 存取
  */
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const search = searchParams.get("search");
+
   // Re-compilation trigger: 2026-04-05 12:35
   const session = await getServerSession(authOptions);
 
@@ -19,6 +22,12 @@ export async function GET() {
 
   try {
     const users = await prisma.user.findMany({
+      where: search ? {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+        ]
+      } : undefined,
       select: {
         id: true,
         name: true,

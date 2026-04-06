@@ -46,7 +46,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { data: session } = useSession();
   const pathname = usePathname();
 
-  const role = (session?.user as any)?.role as string | undefined;
+  const role = (session?.user as any)?.systemRole || (session?.user as any)?.role;
 
   /**
    * 根據系統角色 (systemRole) 決定側邊欄的導航選單項目
@@ -107,7 +107,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 asChild
                 isActive={pathname === item.url}
                 tooltip={item.title}
-                className="py-6"
+                className={cn(
+                  "py-6 transition-all",
+                  pathname === item.url
+                    ? "bg-indigo-50/50 text-indigo-600 font-black"
+                    : "hover:bg-slate-50"
+                )}
               >
                 <Link href={item.url}>
                   <item.icon className="size-5" />
