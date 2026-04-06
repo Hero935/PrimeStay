@@ -14,9 +14,14 @@ export default async function AdminInvitationsPage() {
   if (!session?.user) redirect("/login");
   if ((session.user as any).role !== "ADMIN") redirect("/");
 
-  // 查詢所有房東邀請記錄（targetRole = LANDLORD）
+  // 查詢系統級邀請記錄（房東 或 由 Admin 發出的代管邀請）
   const invitations = await prisma.invitation.findMany({
-    where: { targetRole: "LANDLORD" },
+    where: {
+      OR: [
+        { targetRole: "LANDLORD" },
+        { targetRole: "MANAGER" }
+      ]
+    },
     orderBy: { expiresAt: "desc" },
     include: {
       inviter: { select: { name: true, email: true } },

@@ -33,6 +33,12 @@ export async function GET(req: Request) {
     
     if (organizationId) {
       where.organizationId = organizationId;
+    } else if (isAdmin) {
+      // 管理員查看全域官方邀請：過濾出房東邀請或由 Admin 產生的且未繫結組織的代管邀請
+      where.OR = [
+        { targetRole: "LANDLORD" },
+        { targetRole: "MANAGER", organizationId: null }
+      ];
     }
     
     if (targetRole) {

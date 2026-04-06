@@ -16,6 +16,7 @@ interface Invitation {
   inviter: { name: string | null; email: string };
   organization: { name: string } | null;
   targetRole: string;
+  targetPlan: string | null;
 }
 
 interface Organization {
@@ -116,7 +117,8 @@ export function InvitationsList({
    */
   const fetchInvitations = async () => {
     try {
-      const response = await fetch("/api/invitations?targetRole=LANDLORD&includeUsed=true");
+      // 獲取 Admin 可見的邀請類型 (LANDLORD 與 MANAGER)
+      const response = await fetch("/api/invitations?includeUsed=true");
       const data = await response.json();
       if (data.success) {
         setInvitations(data.data.map((inv: any) => ({
@@ -134,6 +136,9 @@ export function InvitationsList({
     accepted: invitations.filter((i) => i.isUsed).length,
     pending: invitations.filter((i) => !i.isUsed && (i.expiresAt as Date) > now).length,
     expired: invitations.filter((i) => !i.isUsed && (i.expiresAt as Date) <= now).length,
+    conversionRate: invitations.length > 0
+      ? Math.round((invitations.filter((i) => i.isUsed).length / invitations.length) * 100)
+      : 0,
   };
 
   return (
@@ -145,32 +150,56 @@ export function InvitationsList({
             <Mail className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">房東邀請管理</h1>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">官方邀請管理</h1>
             <p className="text-sm text-slate-500">
-              共計 {stats.total} 筆房東邀請記錄
+              共計 {stats.total} 筆由管理員發出的邀請記錄
             </p>
           </div>
         </div>
-
-        <InviteDialog
-          targetRole="LANDLORD"
-          organizations={organizations}
-          triggerLabel="邀請新房東"
-          onSuccess={fetchInvitations}
-        />
+  
+        <div className="flex items-center gap-3">
+          <InviteDialog
+            targetRole="LANDLORD"
+            organizations={organizations}
+            triggerLabel="房東邀請"
+            onSuccess={fetchInvitations}
+          />
+          <InviteDialog
+            targetRole="MANAGER"
+            organizations={organizations}
+            triggerLabel="代管邀請"
+            onSuccess={fetchInvitations}
+          />
+        </div>
       </div>
 
       {/* 統計概況區 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
           { label: "已授權加入", value: stats.accepted, color: "border-emerald-100 bg-emerald-50 text-emerald-700" },
           { label: "待處理邀請", value: stats.pending, color: "border-blue-100 bg-blue-50 text-blue-700" },
-          { label: "已過期", value: stats.expired, color: "border-slate-100 bg-slate-50 text-slate-400" }
+          { label: "已過期", value: stats.expired, color: "border-slate-100 bg-slate-50 text-slate-400" },
+          {
+            label: "入駐轉換率",
+            value: `${stats.conversionRate}%`,
+            color: "border-indigo-100 bg-indigo-50 text-indigo-700",
+            isProgress: true
+          }
         ].map((s) => (
           <Card key={s.label} className={`border ${s.color}`}>
             <CardContent className="py-4 px-5">
               <p className="text-xs font-semibold uppercase tracking-wider mb-1 opacity-70">{s.label}</p>
-              <p className="text-2xl font-bold">{s.value}</p>
+              <div className="flex items-end justify-between gap-2">
+                <p className="text-2xl font-bold">{s.value}</p>
+                {s.isProgress && (
+                  <div className="w-16 h-1 w-full bg-indigo-200 rounded-full overflow-hidden mb-2">
+                    <div
+                      className="h-full bg-indigo-600 transition-all duration-1000"
+                      style={{ width: `${stats.conversionRate}%` }}
+                    />
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         ))}
@@ -208,8 +237,22 @@ export function InvitationsList({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-bold text-slate-800 text-sm truncate">
-                          {inv.organization?.name ?? (inv.targetRole === "LANDLORD" ? "新房東註冊 (待設定組織)" : "未指定組織")}
+                          {inv.organization?.name ?? (
+                            inv.targetRole === "LANDLORD"
+                              ? "新房東註冊 (待設定組織)"
+                              : inv.targetRole === "MANAGER"
+                                ? "專業代管 (待設定組織)"
+                                : "未指定組織"
+                          )}
                         </span>
+                        <Badge variant="outline" className="text-[10px] py-0 h-4 border-slate-200 text-slate-500">
+                          {inv.targetRole}
+                        </Badge>
+                        {inv.targetPlan && (
+                          <Badge variant="outline" className="text-[10px] py-0 h-4 border-blue-200 text-blue-600 bg-blue-50/50">
+                            {inv.targetPlan} 方案
+                          </Badge>
+                        )}
                         <Badge variant="secondary" className={`text-[10px] py-0 h-4 border-none ${status.className}`}>
                           {status.label}
                         </Badge>

@@ -22,6 +22,15 @@ export function AICActionVault() {
     window.location.href = `/admin/users?search=${encodeURIComponent(searchQuery)}`;
   };
 
+  const [stats, setStats] = useState<any>(null);
+
+  useEffect(() => {
+    fetch("/api/admin/stats")
+      .then(res => res.json())
+      .then(data => setStats(data))
+      .catch(err => console.error("Failed to fetch stats for alerts:", err));
+  }, []);
+
   return (
     <div className="flex flex-col h-full space-y-8 pr-1">
       {/* 使用統一邀請對話框 (與房東端一致) */}
@@ -80,11 +89,43 @@ export function AICActionVault() {
         </div>
         
         <div className="space-y-2">
-          <AlertItem
-            type="info"
-            title="系統穩定"
-            desc="所有核心服務目前運作正常，無掛起任務。"
-          />
+          {stats?.lowOccupancyCount > 0 ? (
+            <AlertItem
+              type="warning"
+              title="低出租率風險"
+              desc={`${stats.lowOccupancyCount} 個組織的出租率低於 40%，可能面臨客戶流失風險。`}
+            />
+          ) : (
+            <AlertItem
+              type="info"
+              title="系統穩定"
+              desc="所有核心服務目前運作正常，無掛起任務。"
+            />
+          )}
+
+          {stats?.expiredOrgsCount > 0 && (
+            <AlertItem
+              type="error"
+              title="訂閱逾期風險"
+              desc={`發現 ${stats.expiredOrgsCount} 個組織方案已過期，可能影響系統營收。`}
+            />
+          )}
+
+          {stats?.pendingBillingCount > 0 && (
+            <AlertItem
+              type="error"
+              title="待審帳單告警"
+              desc={`目前有 ${stats.pendingBillingCount} 筆帳單等待管理員審核。`}
+            />
+          )}
+
+          {stats?.pendingMaintenanceCount > 0 && (
+            <AlertItem
+                type="warning"
+                title="報修逾時風險"
+                desc={`系統偵測到 ${stats.pendingMaintenanceCount} 個報修任務尚未指派處理人。`}
+            />
+          )}
         </div>
       </div>
 

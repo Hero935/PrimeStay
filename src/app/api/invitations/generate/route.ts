@@ -41,8 +41,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "只有系統管理員能指派訂閱方案" }, { status: 403 });
     }
 
-    // 參數驗證：非 LANDLORD 角色必須提供 organizationId
-    if (!targetRole || (targetRole !== "LANDLORD" && !organizationId)) {
+    // 修正：Admin 發出的 LANDLORD 與 MANAGER 邀請可以不帶 organizationId
+    const isGenesisInvite = targetRole === "LANDLORD" || targetRole === "MANAGER";
+    
+    if (!targetRole || (!isGenesisInvite && !organizationId)) {
       return NextResponse.json({ error: "缺少必要參數" }, { status: 400 });
     }
 

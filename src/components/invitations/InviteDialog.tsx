@@ -81,7 +81,8 @@ export function InviteDialog({
   }, [isOpen, fixedOrganizationId]);
 
   const handleGenerate = () => {
-    if (targetRole !== "LANDLORD" && !selectedOrgId) {
+    // 修正：房東與代管 (專業代管) 邀請可不帶組織資訊 (由管理員官方發出)
+    if (targetRole !== "LANDLORD" && targetRole !== "MANAGER" && !selectedOrgId) {
       toast.error("缺少組織資訊");
       return;
     }
@@ -141,9 +142,9 @@ export function InviteDialog({
             <Button variant="ghost" onClick={() => setOpen(false)}>
               取消
             </Button>
-            <Button 
+            <Button
               onClick={handleGenerate}
-              disabled={isLoading || (targetRole !== "LANDLORD" && !selectedOrgId)}
+              disabled={isLoading || (targetRole !== "LANDLORD" && targetRole !== "MANAGER" && !selectedOrgId)}
               className="bg-blue-600 hover:bg-blue-700"
             >
               {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}

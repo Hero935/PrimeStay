@@ -21,14 +21,41 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export default async function AdminUsersPage() {
+import { UserStatusToggle } from "./UserStatusToggle";
+import { UserFilters } from "./UserFilters";
+
+export default async function AdminUsersPage(props: {
+    searchParams: Promise<{ search?: string; role?: string; status?: string }>;
+}) {
+  const searchParams = await props.searchParams;
   const session = await getServerSession(authOptions);
 
   if (!session?.user) redirect("/login");
   if ((session.user as any).role !== "ADMIN") redirect("/");
 
+  const { search, role, status } = searchParams;
+
+  // 建立治理查詢條件 (Registry Query Builder)
+  let whereClause: any = {};
+
+  if (search) {
+    whereClause.OR = [
+      { name: { contains: search, mode: 'insensitive' } },
+      { email: { contains: search, mode: 'insensitive' } },
+    ];
+  }
+
+  if (role) {
+    whereClause.systemRole = role;
+  }
+
+  if (status) {
+    whereClause.status = status;
+  }
+
   // 獲取所有用戶及其組織資訊
   const users = await prisma.user.findMany({
+    where: whereClause,
     orderBy: { createdAt: "desc" },
     include: {
       organizations: { select: { name: true } }, // 房東擁有的組織
@@ -39,6 +66,8 @@ export default async function AdminUsersPage() {
       }
     }
   });
+
+  const suspendedCount = users.filter(u => u.status === "SUSPENDED").length;
 
   return (
     <div className="flex-1 space-y-8 p-8 pt-6">
@@ -53,17 +82,14 @@ export default async function AdminUsersPage() {
             <p className="text-sm text-slate-500">全域行為治理與身份標籤監控系統</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-            <div className="relative group">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
-                <input
-                    placeholder="搜尋用戶 ID / 電子郵件..."
-                    className="bg-white border border-slate-200 rounded-lg py-1.5 pl-9 pr-4 text-xs font-mono text-slate-900 w-64 focus:outline-none focus:border-indigo-500/50 transition-all font-sans"
-                />
-            </div>
-            <Button variant="outline" className="border-slate-200 bg-white text-[10px] uppercase font-bold h-9 hover:border-slate-300">
-                <Filter className="w-3 h-3 mr-2" /> 篩選條件
-            </Button>
+        <div className="flex items-center gap-4">
+            {(role || status) && (
+                <Badge variant="secondary" className="bg-rose-50 text-rose-600 border-rose-200 text-[10px] px-2 h-7 flex items-center gap-1 animate-in fade-in slide-in-from-right-2">
+                    <ShieldAlert className="w-3 h-3" />
+                    治理模式：局部監控中
+                </Badge>
+            )}
+            <UserFilters />
         </div>
       </div>
 
@@ -84,7 +110,7 @@ export default async function AdminUsersPage() {
               </div>
               <div>
                  <div className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">全域封禁標記</div>
-                 <div className="text-xl font-mono font-bold text-rose-500">0</div>
+                 <div className="text-xl font-mono font-bold text-rose-500">{suspendedCount}</div>
               </div>
            </Card>
            <Card className="bg-white border-slate-200 p-4 flex items-center gap-4 hover:border-emerald-500/30 transition-all cursor-pointer shadow-sm">
@@ -145,10 +171,12 @@ export default async function AdminUsersPage() {
                                 </div>
                             </td>
                             <td className="p-4 text-right">
-                               <div className="opacity-0 group-hover:opacity-100 transition-all flex justify-end gap-1.5">
-                                    <button className="h-7 w-7 flex items-center justify-center border border-slate-200 rounded bg-white text-slate-400 hover:border-rose-500/50 hover:text-rose-500 transition-all shadow-sm" title="全域封禁">
-                                        <Ban className="w-3 h-3" />
-                                    </button>
+                               <div className="flex justify-end gap-1.5">
+                                    <UserStatusToggle
+                                        userId={user.id}
+                                        currentStatus={user.status}
+                                        userName={user.name || "N/A"}
+                                    />
                                     <button className="h-7 w-7 flex items-center justify-center border border-slate-200 rounded bg-white text-slate-400 hover:border-indigo-500/50 hover:text-indigo-600 transition-all shadow-sm">
                                         <MoreHorizontal className="w-3.5 h-3.5" />
                                     </button>

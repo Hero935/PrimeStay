@@ -9,7 +9,7 @@ import { prisma } from "@/lib/prisma";
 interface FlatManagementNode {
   id: string;
   name: string;
-  type: "landlord" | "property" | "organization";
+  type: "landlord" | "property" | "organization" | "manager" | "tenant";
   status?: string;
   subtitle?: string;
   metadata?: any;
@@ -34,47 +34,63 @@ export async function GET() {
     let flatData: FlatManagementNode[] = [];
 
     if (role === "ADMIN") {
-      const landlords = await prisma.user.findMany({
-        where: { systemRole: "LANDLORD" },
+      /**
+       * AIC v3: Admin 視圖從組織層級切入 (Nexus 模式)
+       */
+      const organizations = await prisma.organization.findMany({
         include: {
-          organizations: { take: 1 },
-          userOrganizations: {
+          owner: true,
+          properties: {
             include: {
-              organization: {
-                include: {
-                  properties: {
-                    include: {
-                      manager: true,
-                      contracts: {
-                        where: { status: "OCCUPIED" },
-                        include: { tenant: true }
-                      }
-                    }
-                  }
-                }
+              manager: true,
+              contracts: {
+                where: { status: "OCCUPIED" },
+                include: { tenant: true }
               }
             }
           }
         }
       });
 
-      flatData = landlords.map(u => ({
-        id: `landlord-${u.id}`,
-        name: u.name || u.email,
-        type: "landlord",
-        status: u.status,
-        subtitle: u.organizations[0]?.name || "個人房東",
-        metadata: { email: u.email, orgName: u.organizations[0]?.name },
-        children: u.userOrganizations[0]?.organization.properties.map((p: any) => ({
-          id: p.id,
-          name: `${p.address} (${p.roomNumber})`,
-          type: "property",
-          status: p.status,
-          children: [
-            ...(p.manager ? [{ id: p.manager.id, name: p.manager.name, type: "manager", metadata: { email: p.manager.email } }] : []),
-            ...p.contracts.map((c: any) => ({ id: c.tenant.id, name: c.tenant.name, type: "tenant", metadata: { email: c.tenant.email } }))
-          ]
-        }))
+      flatData = organizations.map((org: any) => ({
+        id: `org-${org.id}`,
+        name: org.name,
+        type: "organization",
+        subtitle: `Owner: ${org.owner.name || org.owner.email}`,
+        status: "ACTIVE", // 組織目前無狀態位，預設 ACTIVE
+        metadata: { plan: org.plan, ownerEmail: org.owner.email },
+        children: [
+          // 房東節點 (Root 之下第一層)
+          {
+            id: `landlord-${org.owner.id}`,
+            name: org.owner.name || org.owner.email,
+            type: "landlord",
+            status: org.owner.status,
+            subtitle: "Organization Owner",
+            children: org.properties.map((p: any) => ({
+              id: p.id,
+              name: `${p.address} (${p.roomNumber})`,
+              type: "property",
+              status: p.status,
+              children: [
+                ...(p.manager ? [{
+                  id: p.manager.id,
+                  name: p.manager.name,
+                  type: "manager",
+                  status: p.manager.status,
+                  metadata: { email: p.manager.email }
+                }] : []),
+                ...p.contracts.map((c: any) => ({
+                  id: c.tenant.id,
+                  name: c.tenant.name,
+                  type: "tenant",
+                  status: c.tenant.status,
+                  metadata: { email: c.tenant.email }
+                }))
+              ]
+            }))
+          }
+        ]
       }));
 
     } else if (role === "MANAGER") {

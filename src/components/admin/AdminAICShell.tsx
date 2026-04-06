@@ -120,8 +120,8 @@ export function AdminAICShell({
       </main>
 
       {/* [C] 命令與告警面板 - Action Vault (手機版隱藏) */}
-      <aside className="hidden lg:block w-[350px] flex-none border-l bg-slate-50/80 backdrop-blur-sm overflow-y-auto custom-scrollbar">
-        <div className="p-5 h-full">
+      <aside className="hidden lg:block w-[380px] flex-none border-l bg-slate-50/80 backdrop-blur-sm overflow-hidden">
+        <div className="h-full">
           {actionVault}
         </div>
       </aside>

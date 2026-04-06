@@ -34,6 +34,9 @@ c:\Scorpio\projects\PrimeStay
 | `src/components/admin/AICDiagnostics.tsx` | 包含 MRR、DB 脈動、出租率熱圖等診斷組件。 |
 | `src/components/admin/AICActionVault.tsx` | 右側命令與告警面板，整合統一邀請系統。 |
 | `src/app/admin/layout.tsx` | Admin 路由層級配置，包含側邊欄預設狀態設置。 |
+| `src/app/admin/management/page.tsx` | Nexus 整合資產索引 (Nexus Index) 入口。 |
+| `src/components/management/ManagementTree.tsx` | 遞迴遞迴管理樹，支援角色權限過濾與脈動視覺。 |
+| `src/components/management/ManagementViewWrapper.tsx` | Nexus Pulse 核心工作區，實作極致扁平化 (Zero-Scroll) 佈局。 |
 
 ## 安裝及執行方式
 1. **依賴安裝**:

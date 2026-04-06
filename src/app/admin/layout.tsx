@@ -7,6 +7,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { AdminAICShell } from "@/components/admin/AdminAICShell";
 import { AICActionVault } from "@/components/admin/AICActionVault";
+import { AICAuditVault } from "@/components/admin/AICAuditVault";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
@@ -32,7 +33,16 @@ export default async function AdminLayout({
     <SidebarProvider defaultOpen={true}>
       <AdminAICShell
         sidebar={<AppSidebar />}
-        actionVault={<AICActionVault />}
+        actionVault={
+          <div className="flex flex-col h-full overflow-hidden">
+            <div className="h-1/2 overflow-y-auto custom-scrollbar">
+              <AICActionVault />
+            </div>
+            <div className="h-1/2 border-t overflow-hidden">
+              <AICAuditVault />
+            </div>
+          </div>
+        }
       >
         {children}
       </AdminAICShell>

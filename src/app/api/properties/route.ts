@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth/next";
 import { NextResponse } from "next/server";
 import { withAuth } from "@/lib/api-guards";
+import { SUBSCRIPTION_PLANS, PlanKey } from "@/lib/constants";
 
 /**
  * 房源列表與新增 API
@@ -104,17 +105,12 @@ export const POST = withAuth(async (req: Request, { session }) => {
       where: { organizationId },
     });
 
-    const PLAN_LIMITS: Record<string, number> = {
-      FREE: 2,
-      STARTER: 10,
-      PRO: 50,
-    };
-
-    const limit = PLAN_LIMITS[(organization as any).plan] || 0;
+    const planKey = (organization as any).plan as PlanKey;
+    const limit = SUBSCRIPTION_PLANS[planKey]?.propertyLimit || 0;
 
     if (propertyCount >= limit) {
       return NextResponse.json(
-        { error: `方案額度已滿 (當前方案：${(organization as any).plan}，上限：${limit} 間)，請升級方案。` },
+        { error: `方案額度已滿 (當前方案：${planKey}，上限：${limit} 間)，請升級方案。` },
         { status: 403 }
       );
     }
