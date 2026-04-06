@@ -2,9 +2,9 @@
 
 import React, { useState } from "react";
 import { ManagementTree } from "./ManagementTree";
-import { 
-  Building2, 
-  Home, 
+import {
+  Building2,
+  Home,
   Users as UsersIcon,
   Search,
   MapPin,
@@ -12,7 +12,8 @@ import {
   Activity,
   Zap,
   ExternalLink,
-  ShieldCheck
+  ShieldCheck,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +26,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { QuickActionDrawer } from "@/components/admin/QuickActionDrawer";
 
 interface ManagementNode {
   id: string;
@@ -53,6 +55,14 @@ interface FlattenedUser {
  */
 export function ManagementViewWrapper() {
   const [selectedNode, setSelectedNode] = useState<ManagementNode | null>(null);
+  const [isQuickActionOpen, setIsQuickActionOpen] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanProgress, setScanProgress] = useState(0);
+  const [diagnosticData, setDiagnosticData] = useState({
+    utilization: 94.8,
+    latency: 0.42,
+    insights: "Infrastructure load is stable. Recommended to scale sub-entities in Region-B."
+  });
   const isMobile = useIsMobile();
 
   /**
@@ -84,6 +94,32 @@ export function ManagementViewWrapper() {
 
     traverse(node);
     return users;
+  };
+
+  /**
+   * 執行全網掃描模擬
+   */
+  const handleStartScan = async () => {
+    setIsScanning(true);
+    setScanProgress(0);
+    
+    // 模擬進度條與數據抖動
+    for (let i = 0; i <= 100; i += 5) {
+      setScanProgress(i);
+      setDiagnosticData(prev => ({
+        ...prev,
+        utilization: Number((Math.random() * 20 + 75).toFixed(1)),
+        latency: Number((Math.random() * 0.5 + 0.1).toFixed(2))
+      }));
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    setDiagnosticData({
+      utilization: 82.3,
+      latency: 0.28,
+      insights: "Scan Complete. All clusters operating within optimized parameters. Memory allocation adjusted."
+    });
+    setIsScanning(false);
   };
 
   /**
@@ -139,8 +175,33 @@ export function ManagementViewWrapper() {
           </div>
           
           <div className="hidden sm:flex items-center gap-2 shrink-0">
-            <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-[10px] font-black h-9 px-4 rounded-lg uppercase tracking-widest">快速管理</Button>
-            <Button size="sm" variant="outline" className="border-white/10 bg-white/5 hover:bg-white/10 text-white text-[10px] font-black h-9 px-4 rounded-lg uppercase tracking-widest">數據報告</Button>
+            {/* 只針對 組織 或 人員 (Landlord/Manager/Tenant) 顯示快速管理 */}
+            {["organization", "landlord", "manager", "tenant"].includes(node.type) && (
+              <Button
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 text-[10px] font-black h-9 px-4 rounded-lg uppercase tracking-widest"
+                onClick={() => setIsQuickActionOpen(true)}
+              >
+                快速管理
+              </Button>
+            )}
+            
+            {/* 針對 組織 或 房源 顯示數據報告 */}
+            {["organization", "property"].includes(node.type) && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-white/10 bg-white/5 hover:bg-white/10 text-white text-[10px] font-black h-9 px-4 rounded-lg uppercase tracking-widest"
+                onClick={() => {
+                  const targetUrl = node.type === "organization"
+                    ? `/admin/organizations?id=${node.id}`
+                    : `/admin/properties?id=${node.id}`;
+                  window.open(targetUrl, "_blank");
+                }}
+              >
+                數據報告
+              </Button>
+            )}
           </div>
         </div>
 
@@ -220,21 +281,34 @@ export function ManagementViewWrapper() {
                       </div>
                       
                       <div className="space-y-5">
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Utilization</span>
-                            <span className="text-xs font-black text-white tracking-tighter">94.8%</span>
-                          </div>
-                          <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                            <div className="h-full bg-blue-600 w-[94.8%] shadow-[0_0_8px_rgba(37,99,235,0.5)]" />
-                          </div>
-                        </div>
-                        
+                      <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Latency</span>
-                          <span className="text-xs font-black text-emerald-400 tracking-tighter">0.42s</span>
+                          <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Utilization</span>
+                          <span className={cn(
+                            "text-xs font-black tracking-tighter transition-all duration-300",
+                            isScanning ? "text-blue-400" : "text-white"
+                          )}>
+                            {diagnosticData.utilization}%
+                          </span>
+                        </div>
+                        <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.5)] transition-all duration-300"
+                            style={{ width: `${diagnosticData.utilization}%` }}
+                          />
                         </div>
                       </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Latency</span>
+                        <span className={cn(
+                          "text-xs font-black tracking-tighter transition-all duration-300",
+                          isScanning ? "text-blue-400" : "text-emerald-400"
+                        )}>
+                          {diagnosticData.latency}s
+                        </span>
+                      </div>
+                    </div>
                     </div>
                     
                     <div className="p-6 mt-auto">
@@ -243,12 +317,26 @@ export function ManagementViewWrapper() {
                           <Activity className="size-3 text-blue-500" />
                           <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Advisor insight</p>
                         </div>
-                        <p className="text-[11px] text-slate-300 leading-relaxed font-medium italic">
-                          "Infrastructure load is stable. Recommended to scale sub-entities in Region-B."
+                        <p className="text-[11px] text-slate-300 leading-relaxed font-medium italic transition-all duration-500">
+                          "{diagnosticData.insights}"
                         </p>
                       </div>
-                      <Button className="w-full bg-blue-600 hover:bg-blue-700 font-black text-[9px] h-11 uppercase tracking-widest rounded-lg shadow-lg shadow-blue-900/20">
-                        執行全網掃描
+                      <Button
+                        disabled={isScanning}
+                        onClick={handleStartScan}
+                        className={cn(
+                          "w-full font-black text-[9px] h-11 uppercase tracking-widest rounded-lg shadow-lg transition-all duration-500",
+                          isScanning
+                            ? "bg-slate-700 text-slate-400 shadow-none cursor-wait"
+                            : "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-900/20"
+                        )}
+                      >
+                        {isScanning ? (
+                          <div className="flex items-center gap-2">
+                             <Loader2 className="size-3 animate-spin" />
+                             正在掃描... {scanProgress}%
+                          </div>
+                        ) : "執行全網掃描"}
                       </Button>
                     </div>
                   </div>
@@ -351,7 +439,14 @@ export function ManagementViewWrapper() {
         <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:24px_24px] opacity-40 pointer-events-none" />
 
         {selectedNode ? (
-          renderWorkspace(selectedNode, isMobile)
+          <>
+            {renderWorkspace(selectedNode, isMobile)}
+            <QuickActionDrawer
+              isOpen={isQuickActionOpen}
+              onOpenChange={setIsQuickActionOpen}
+              node={selectedNode}
+            />
+          </>
         ) : (
           <div className="h-full flex flex-col items-center justify-center p-8 text-slate-300 relative z-10 w-full animate-in fade-in duration-700">
              <div className="size-32 rounded-[40px] border-4 border-slate-100 flex items-center justify-center opacity-40 shadow-2xl bg-white animate-in zoom-in-50 duration-500 relative">

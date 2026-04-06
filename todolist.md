@@ -1,29 +1,21 @@
-# 📋 PrimeStay 任務清單
+# 🚀 PrimeStay 管理後台 (Admin Management) 功能實作清單
 
-## 🏗️ 基礎架構
-- [x] 建立資料庫模型 (Prisma Schema)
-- [x] 初始化 Next.js 專案架構
-- [x] 設定 TypeScript 配置 (tsconfig.json)
+## 1. 核心功能補完 (Core Functionality)
+- [ ] **快速管理 (Quick Management)**: 實作點擊按鈕後開啟 `QuickActionDrawer` 或 `Dialog`
+    - [ ] 支援針對選中實體進行「停權/啟動」操作
+    - [ ] 支援快速調整組織方案等級
+- [ ] **數據報告 (Data Report)**: 實作跳轉至相關數據分析頁面或開啟分析側拉窗
+    - [ ] 串接至房東/組織的財務報告
+    - [ ] 串接至房源出租率分析
+- [ ] **執行全網掃描 (Full Network Scan)**: 實作掃描模擬邏輯
+    - [ ] 點擊後觸發 Loading 狀態與掃描進度條
+    - [ ] 掃描完成後更新右側 `Diagnostic DNA` 與 `Advisor insight`
 
-## 🔐 認證與授權
-- [x] 實作 NextAuth 認證
-- [x] 實作 API 權限檢查機制 (api-guards.ts)
+## 2. UI/UX 優化 (UI/UX Enhancements)
+- [ ] **即時指標對接**: 將診斷面板中的百分比（如 Utilization）與實際資料連動
+- [ ] **DNA 動畫演進**: 掃描時 DNA Sparkline 應有動態波形變化
+- [ ] **二次確認保護**: 針對危險操作（如停權）增加影響力評估提示
 
-## 📊 管理員功能 (Admin Intelligence & Command)
-- [x] 實作後台統計 API (`/api/admin/stats`)
-- [x] 優化 MRR 計算邏輯與配置抽離
-- [x] 實作全平台用戶管理功能 (含搜尋、封禁治理)
-- [x] 實作組織訂閱方案管理 (強制升降級 API & UI)
-
-## 🏢 組織與房源管理
-- [ ] 實作組織樹狀結構 API
-- [ ] 實作房源建立與方案額度檢查邏輯
-
-## ⚡ 系統優化
-- [x] 配置全域定價常數 (`src/lib/constants.ts`)
-- [x] 重新產生 Prisma Client 以同步 Schema 變動
-## 📁 AIC v3 治理模組優化 (Strategic Governance Phase)
-- [x] 重構 /admin/organizations 為「組織手術台」，導入出租率視覺化預警與參數同步篩選。
-- [x] 重構 /admin/users 為「治安監控終端」，強化一鍵全域停權與風險標籤治理。
-- [x] 重構 /admin/invitations 為「創世門戶」，支援官方雙角色招募與方案預綁定功能。
-- [x] 重構 /admin/settings 為「戰略參數中控室」，導入 Feature Flags 與 Threshold 閾值控制台。
+## 3. 系統整合 (System Integration)
+- [ ] **API 實作**: 建立 `/api/admin/diagnostics` 用於處理掃描請求
+- [ ] **日誌追蹤**: 掃描或管理操作後應產生 Audit Log
