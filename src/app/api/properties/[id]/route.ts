@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth/next";
 import { NextResponse } from "next/server";
+import { withAuth } from "@/lib/api-guards";
 
 /**
  * 特定房源操作 API
@@ -16,17 +17,14 @@ export async function GET(
 ) {
   try {
     const session = await getServerSession(authOptions);
-
-    if (!session) {
-      return NextResponse.json({ error: "未登入" }, { status: 401 });
-    }
-
     const { id } = await params;
 
     const property = await prisma.property.findUnique({
       where: { id },
       include: {
-        organization: true,
+        organization: {
+          select: { id: true, name: true, plan: true }
+        },
         manager: {
           select: { id: true, name: true, email: true }
         }
@@ -37,18 +35,41 @@ export async function GET(
       return NextResponse.json({ error: "找不到該房源" }, { status: 404 });
     }
 
-    // 數據隔離檢查
-    if ((session.user as any).role !== "ADMIN") {
-      const isMember = await prisma.userOrganization.findFirst({
-        where: {
-          userId: (session.user as any).id,
-          organizationId: property.organizationId,
-        }
-      });
-
-      if (!isMember) {
-        return NextResponse.json({ error: "權限不足" }, { status: 403 });
+    // 權限與資料過濾邏輯
+    let isAuthorized = false;
+    
+    if (session) {
+      if ((session.user as any).role === "ADMIN") {
+        isAuthorized = true;
+      } else {
+        const isMember = await prisma.userOrganization.findFirst({
+          where: {
+            userId: (session.user as any).id,
+            organizationId: property.organizationId,
+          }
+        });
+        if (isMember) isAuthorized = true;
       }
+    }
+
+    // 如果是訪客或非成員，過濾敏感資訊
+    if (!isAuthorized) {
+      // 訪客僅能看到基礎資訊
+      const publicData = {
+        id: property.id,
+        address: property.address, // TODO: 未來可考慮地址脫敏 (例如僅顯示到道路)
+        type: property.type,
+        size: property.size,
+        defaultRent: property.defaultRent,
+        photos: property.photos,
+        status: property.status,
+        organization: property.organization,
+        // 隱藏管理費、水電費預設值、房號與聯繫方式
+        roomNumber: "***",
+        manager: null,
+        isPublicPreview: true
+      };
+      return NextResponse.json({ success: true, data: publicData });
     }
 
     return NextResponse.json({ success: true, data: property });
@@ -63,20 +84,9 @@ export async function GET(
  * @param req 請求物件
  * @param context 路由上下文，包含非同步參數
  */
-export async function PUT(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const PUT = withAuth(async (req: Request, { params, session }) => {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session || !["ADMIN", "LANDLORD", "MANAGER"].includes((session.user as any).role)) {
-      return NextResponse.json({ error: "權限不足" }, { status: 403 });
-    }
-
-    // 在 Next.js 15+ 中，params 必須先被 await 才能解構
-    const resolvedParams = await params;
-    const id = resolvedParams.id;
+    const { id } = params;
 
     if (!id) {
       return NextResponse.json({ error: "缺少房源 ID" }, { status: 400 });
@@ -143,20 +153,11 @@ export async function PUT(
     console.error("更新房源失敗:", error);
     return NextResponse.json({ error: "系統錯誤" }, { status: 500 });
   }
-}
+}, ["ADMIN", "LANDLORD", "MANAGER"]);
 
-export async function DELETE(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export const DELETE = withAuth(async (req: Request, { params, session }) => {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session || !["ADMIN", "LANDLORD"].includes((session.user as any).role)) {
-      return NextResponse.json({ error: "權限不足" }, { status: 403 });
-    }
-
-    const { id } = await params;
+    const { id } = params;
 
     // 檢查房源是否存在
     const property = await prisma.property.findUnique({
@@ -200,4 +201,4 @@ export async function DELETE(
     console.error("刪除房源失敗:", error);
     return NextResponse.json({ error: "系統錯誤" }, { status: 500 });
   }
-}
+}, ["ADMIN", "LANDLORD"]);

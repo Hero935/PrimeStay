@@ -5,7 +5,7 @@ import { CldUploadWidget } from "next-cloudinary";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Home, MapPin, Square, X, Image as ImageIcon } from "lucide-react";
+import { Plus, Home, MapPin, Square, X, Image as ImageIcon, Crown } from "lucide-react";
 import { toast } from "sonner";
 import { ManagerAssignment } from "./ManagerAssignment";
 import { ResponsiveDrawer } from "@/components/ui/responsive-drawer";
@@ -17,6 +17,7 @@ import { ResponsiveDrawer } from "@/components/ui/responsive-drawer";
 export default function PropertiesPage() {
   const [organizations, setOrganizations] = useState<any[]>([]);
   const [selectedOrgId, setSelectedOrgId] = useState("");
+  const [selectedOrg, setSelectedOrg] = useState<any>(null);
   const [properties, setProperties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -105,6 +106,7 @@ export default function PropertiesPage() {
       setOrganizations(data || []);
       if (data && data.length > 0) {
         setSelectedOrgId(data[0].id);
+        setSelectedOrg(data[0]);
       }
     } catch (err) {
       toast.error("載入組織失敗");
@@ -243,11 +245,15 @@ export default function PropertiesPage() {
           <p className="text-slate-500">管理您的物件與代管分派</p>
         </div>
         <div className="flex items-center gap-2">
-          {organizations.length > 1 && (
+          {organizations.length > 0 && (
             <select
               className="border p-1 text-sm rounded shadow-sm bg-white"
               value={selectedOrgId}
-              onChange={(e) => setSelectedOrgId(e.target.value)}
+              onChange={(e) => {
+                const orgId = e.target.value;
+                setSelectedOrgId(orgId);
+                setSelectedOrg(organizations.find(o => o.id === orgId));
+              }}
             >
               {organizations.map((org) => (
                 <option key={org.id} value={org.id}>{org.name}</option>
@@ -474,9 +480,11 @@ export default function PropertiesPage() {
                   <Button
                     type="submit"
                     className={`flex-1 ${editingPropertyId ? 'bg-blue-600 hover:bg-blue-700' : 'bg-slate-900'}`}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || (!editingPropertyId && selectedOrg && selectedOrg.propertyCount >= (selectedOrg.plan === "FREE" ? 2 : selectedOrg.plan === "STARTER" ? 10 : 50))}
                   >
-                    {isSubmitting ? "提交中..." : editingPropertyId ? "更新房源物件" : "建立房源物件"}
+                    {isSubmitting ? "提交中..." :
+                     editingPropertyId ? "更新房源物件" :
+                     (selectedOrg && selectedOrg.propertyCount >= (selectedOrg.plan === "FREE" ? 2 : selectedOrg.plan === "STARTER" ? 10 : 50)) ? "方案額度已滿" : "建立房源物件"}
                   </Button>
                 </div>
               </form>
@@ -518,6 +526,11 @@ export default function PropertiesPage() {
                       <Badge className="absolute top-2 left-2 text-[10px]" variant={p.status === 'AVAILABLE' ? 'default' : 'secondary'}>
                         {p.status === 'AVAILABLE' ? '待出租' : '已出租'}
                       </Badge>
+                      {selectedOrg?.plan === "PRO" && (
+                        <Badge className="absolute bottom-2 right-2 text-[9px] bg-amber-500 hover:bg-amber-600 text-white border-none py-0 px-1 shadow-sm font-bold flex items-center gap-0.5">
+                          <Crown className="size-2.5" /> PRO
+                        </Badge>
+                      )}
                     </div>
                     <CardContent className="w-2/3 p-4 flex flex-col justify-between">
                       <div>

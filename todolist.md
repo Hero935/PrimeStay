@@ -1,42 +1,27 @@
-# 🚀 任務清單：整合式組織與用戶管理實作 (Integrated Tree Management)
+# 📝 PrimeStay 下階段開發任務清單 (Next Steps)
 
-## Phase 1: 基礎架構與數據準備 (Backend)
-- [ ] 建立 `GET /api/admin/management/tree` 端點 (ADMIN 專用)
-- [ ] 建立 `GET /api/landlord/management/tree` 端點 (LANDLORD/MANAGER 專用)
-- [ ] 實作資料過濾邏輯：
-    - [ ] ADMIN: 遞迴查詢全系統所有 Organization, Property, Manager, Tenant。
-    - [ ] LANDLORD: 固定根節點為所屬 Organization，並載入底下所有資料。
-    - [ ] MANAGER: 只載入其負責的 Property 分支，隱藏其他無權限房源。
-- [ ] 統一 API 返回格式為 `React Arborist` 相容的 `children` 遞迴結構。
-- [ ] 撰寫 API 單元測試，確保 role-based filtering 正確。
+## 🎨 前端 UI/UX 強化
+- [ ] **方案額度儀表板**: 
+    - 房東/代管後台顯示目前房源使用量與上限 (例如: 2/10 間)。
+    - 當房源達到上限時，禁用「新增房源」按鈕，並顯示升級引導。
+- [ ] **Pro 尊榮標記**: 對於使用 Pro 方案的組織/房源，在清單中增加 Amber 色系的 Pro 標誌。
+- [ ] **Admin 邀請介面**: 
+    - 增加方案選擇 (Enum) 下拉選單。
+    - 增加邀請角色選擇 (LANDLORD/MANAGER)。
 
-## Phase 2: 管理樹 UI 組件開發 (Frontend - PC)
-- [ ] 安裝 `react-arborist` 函式庫
-- [ ] 建立 `ManagementTree` 主組件 (Next.js Client Component)
-- [ ] 實作 `CustomNodeRenderer`，視覺化區分：
-    - [ ] Organization (🏢)
-    - [ ] Landlord (👤)
-    - [ ] Property (🏠) - 串接狀態顯示 (綠/藍/紅)
-    - [ ] Manager (🛠️)
-    - [ ] Tenant (🔑) - 顯示合約倒數
-- [ ] 整合 `Shadcn UI` 的右側詳情面板 (Side Panel)
+## 🌍 公開探索頁面
+- [ ] **Visitor 房源清單頁**:
+    - 建立 `/properties/explore` 頁面供未登入用戶存取。
+    - 串接 `GET /api/properties?public=true`。
+- [ ] **房源詳情預覽**:
+    - 訪客僅能看到照片、地址摘要、類型與租金。
+    - 限制聯絡方式需登入後可見（或由房東決定是否公開）。
 
-## Phase 3: 手機端響應式優化 (Frontend - Mobile)
-- [ ] 使用 `Responsive Drawer` (Vaul) 實作手機端的節點操作介面。
-- [ ] 優化手機橫向與縱向的樹狀層級展示邏輯 (由多欄改為鑽取模式)。
+## 🛡️ 權限與安全性加固
+- [ ] **API 中間件 (Middleware)**:
+    - 實作更通用的 `withRoleLimit` 裝飾器，減少各 API 內的手寫 if-else。
+    - 確保 `status === 'SUSPENDED'` 的用戶在所有 API 都會被攔截。
 
-## Phase 4: 高級互動功能
-- [ ] 實作節點搜尋與實時過濾功能。
-- [ ] 加入 `Framer Motion` 動態展開與收合動畫。
-- [ ] 實作節點右鍵選單 (Context Menu)：
-    - [ ] 快速停權/復權
-    - [ ] 快速發送簡訊/Email 給房客
-    - [ ] 指派 Manager。
-
-## Phase 5: 驗收與報告
-- [ ] 撰寫 `report.md` 最終報告。
-- [ ] 更新 `readme.md` 中的檔案描述與系統架構圖。
-- [ ] 建立里程碑 Checkpoint。
-
----
-*狀態: [ ]待處理 [-]進行中 [x]已完成*
+## 📈 方案升級模擬
+- [ ] **方案選擇頁**: 模擬 Starter/Pro 購買流程。
+- [ ] **方案轉移邏輯**: 實作當組織擁有者變更時，方案如何隨之轉移。

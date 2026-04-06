@@ -48,24 +48,25 @@ export async function POST(req: Request) {
       });
 
       // B. 建立組織與關聯
-      if (invitation.targetRole === "LANDLORD") {
+      if (invitation.targetRole === "LANDLORD" || (invitation.targetRole === "MANAGER" && !invitation.organizationId)) {
         let finalOrgId = invitation.organizationId;
 
-        // 如果邀請碼中沒有綁定組織，則建立新組織 (房東自創)
+        // 如果邀請碼中沒有綁定組織，則建立新組織 (房東自創 或 專業代管)
         if (!finalOrgId) {
           if (!organizationName) {
-            throw new Error("房東註冊需要提供組織名稱");
+            throw new Error(`${invitation.targetRole === "LANDLORD" ? "房東" : "專業代管"}註冊需要提供組織名稱`);
           }
           const newOrg = await tx.organization.create({
             data: {
               name: organizationName,
               ownerId: user.id,
+              plan: invitation.targetPlan || "FREE",
             },
           });
           finalOrgId = newOrg.id;
         }
 
-        // 建立成員關聯 (OWNER)
+        // 建立成員關聯 (OWNER / MANAGER)
         await tx.userOrganization.create({
           data: {
             userId: user.id,
@@ -74,7 +75,7 @@ export async function POST(req: Request) {
           },
         });
       } else if (invitation.targetRole === "MANAGER") {
-        // MANAGER 加入現有組織
+        // 一般 MANAGER 加入現有組織 (房東的下屬)
         await tx.userOrganization.create({
           data: {
             userId: user.id,

@@ -9,6 +9,7 @@ import { toast } from "sonner";
 interface GenerateParams {
   organizationId?: string;
   targetRole: "LANDLORD" | "MANAGER" | "TENANT";
+  targetPlan?: string;
   propertyId?: string;
 }
 

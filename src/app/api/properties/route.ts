@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { getServerSession } from "next-auth/next";
 import { NextResponse } from "next/server";
+import { withAuth } from "@/lib/api-guards";
 
 /**
  * 房源列表與新增 API
@@ -12,16 +13,18 @@ import { NextResponse } from "next/server";
 export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions);
+    const { searchParams } = new URL(req.url);
+    const isPublicSearch = searchParams.get("public") === "true";
 
-    if (!session) {
+    // Visitor/未登入僅能存取標記為公開的房源
+    if (!session && !isPublicSearch) {
       return NextResponse.json({ error: "未登入" }, { status: 401 });
     }
 
-    const { searchParams } = new URL(req.url);
     const orgId = searchParams.get("organizationId");
 
-    // 數據隔離：檢查使用者是否在該組織內 (除非是全系統管理員)
-    if ((session.user as any).role !== "ADMIN") {
+    // 數據隔離：檢查使用者是否在該組織內 (除非是全系統管理員 或 正在進行公開搜尋)
+    if (session && (session.user as any).role !== "ADMIN" && !isPublicSearch) {
       const isMember = await prisma.userOrganization.findFirst({
         where: {
           userId: (session.user as any).id,
@@ -37,8 +40,9 @@ export async function GET(req: Request) {
     const properties = await prisma.property.findMany({
       where: {
         organizationId: orgId || undefined,
-        // 如果是 Manager，限制僅能看到分配到的房源
-        managerId: (session.user as any).role === "MANAGER" ? (session.user as any).id : undefined,
+        // 如果是 Manager，限制僅能看到分配到的房源；如果是未登入，僅能看到 AVAILABLE 且公開的資料
+        managerId: session && (session.user as any).role === "MANAGER" ? (session.user as any).id : undefined,
+        status: !session ? "AVAILABLE" : undefined,
       },
       orderBy: { createdAt: "desc" },
     });
@@ -50,14 +54,8 @@ export async function GET(req: Request) {
   }
 }
 
-export async function POST(req: Request) {
+export const POST = withAuth(async (req: Request, { session }) => {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session || !["ADMIN", "LANDLORD", "MANAGER"].includes((session.user as any).role)) {
-      return NextResponse.json({ error: "權限不足" }, { status: 403 });
-    }
-
     const body = await req.json();
     const {
       organizationId,
@@ -92,6 +90,36 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "缺少必要填寫欄位" }, { status: 400 });
     }
 
+    // --- 訂閱方案房源上限檢查 ---
+    const organization = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { plan: true } as any,
+    });
+
+    if (!organization) {
+      return NextResponse.json({ error: "找不到所屬組織" }, { status: 404 });
+    }
+
+    const propertyCount = await prisma.property.count({
+      where: { organizationId },
+    });
+
+    const PLAN_LIMITS: Record<string, number> = {
+      FREE: 2,
+      STARTER: 10,
+      PRO: 50,
+    };
+
+    const limit = PLAN_LIMITS[(organization as any).plan] || 0;
+
+    if (propertyCount >= limit) {
+      return NextResponse.json(
+        { error: `方案額度已滿 (當前方案：${(organization as any).plan}，上限：${limit} 間)，請升級方案。` },
+        { status: 403 }
+      );
+    }
+    // ----------------------------
+
     const property = await prisma.property.create({
       data: {
         organizationId,
@@ -114,4 +142,4 @@ export async function POST(req: Request) {
     console.error("新增房源失敗:", error);
     return NextResponse.json({ error: "系統錯誤" }, { status: 500 });
   }
-}
+}, ["ADMIN", "LANDLORD", "MANAGER"]);

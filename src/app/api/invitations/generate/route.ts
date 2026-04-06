@@ -18,16 +18,27 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "權限不足" }, { status: 403 });
     }
 
-    const { organizationId, propertyId, targetRole } = await req.json();
+    const { organizationId, propertyId, targetRole, targetPlan } = await req.json();
 
     // 1.2 角色型權限細分
     if ((session.user as any).role === "MANAGER" && targetRole === "MANAGER") {
       return NextResponse.json({ error: "代管人員無權邀請其他代管人員" }, { status: 403 });
     }
 
-    // 補充：只有 ADMIN 可以邀請 LANDLORD
+    // 補充：只有 ADMIN 可以邀請 LANDLORD 及 指派方案
     if (targetRole === "LANDLORD" && (session.user as any).role !== "ADMIN") {
       return NextResponse.json({ error: "只有系統管理員能邀請房東" }, { status: 403 });
+    }
+
+    // Admin 限制：平台管理員禁止生成房客 (TENANT) 邀請碼
+    if (targetRole === "TENANT" && (session.user as any).role === "ADMIN") {
+      return NextResponse.json({ error: "系統管理員不參與租賃事務，禁止生成房客邀請碼" }, { status: 403 });
+    }
+
+    // 只有 ADMIN 可以邀請 MANAGER 並指定其為 "專業代管 (有獨立 Organization & 方案)"
+    // 如果是 LANDLORD 邀請的 MANAGER，則不應帶 targetPlan (屬於該 LANDLORD 組織)
+    if (targetPlan && (session.user as any).role !== "ADMIN") {
+      return NextResponse.json({ error: "只有系統管理員能指派訂閱方案" }, { status: 403 });
     }
 
     // 參數驗證：非 LANDLORD 角色必須提供 organizationId
@@ -50,6 +61,7 @@ export async function POST(req: Request) {
         organizationId: organizationId || null,
         propertyId: propertyId || null,
         targetRole,
+        targetPlan: targetPlan || null,
         expiresAt,
       },
     });

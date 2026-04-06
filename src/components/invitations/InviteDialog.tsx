@@ -70,6 +70,7 @@ export function InviteDialog({
   
   const [selectedOrgId, setSelectedOrgId] = useState<string>(fixedOrganizationId || "");
   const [selectedPropId, setSelectedPropId] = useState<string>("");
+  const [targetPlan, setTargetPlan] = useState<string>("FREE");
 
   // 重置狀態
   useEffect(() => {
@@ -93,6 +94,7 @@ export function InviteDialog({
     generate({
       organizationId: selectedOrgId || undefined,
       targetRole,
+      targetPlan: (targetRole === "LANDLORD" || (targetRole === "MANAGER" && !selectedOrgId)) ? targetPlan : undefined,
       propertyId: targetRole === "TENANT" ? selectedPropId : undefined,
     });
   };
@@ -116,6 +118,8 @@ export function InviteDialog({
       {!inviteCode ? (
         <InviteFormContent
           targetRole={targetRole}
+          targetPlan={targetPlan}
+          onPlanChange={setTargetPlan}
           selectedOrganizationId={selectedOrgId}
           onOrganizationChange={setSelectedOrgId}
           organizations={organizations}

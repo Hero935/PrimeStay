@@ -1,13 +1,15 @@
-import { DashboardShell } from "@/components/layout/DashboardShell";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { redirect } from "next/navigation";
-
 /**
- * 系統管理員後台佈局 (Admin Layout)
- * 僅允許 systemRole === "ADMIN" 的使用者進入
- * 套用通用 DashboardShell 並包含側邊欄導航
+ * Admin Layout (AIC v3 Overhaul)
+ * 重新設計為三欄式戰略治理佈局
  */
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
+import { AdminAICShell } from "@/components/admin/AdminAICShell";
+import { AICActionVault } from "@/components/admin/AICActionVault";
+import { AppSidebar } from "@/components/layout/AppSidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
+
 export default async function AdminLayout({
   children,
 }: {
@@ -20,16 +22,20 @@ export default async function AdminLayout({
     redirect("/login");
   }
 
-  const role = (session.user as any).role;
-
-  // 非管理員角色導回首頁（由首頁再根據角色重導向）
-  if (role !== "ADMIN") {
+  // 權限防護：非 ADMIN 角色禁止進入
+  const user = session.user as any;
+  if (user.systemRole !== "ADMIN" && user.role !== "ADMIN") {
     redirect("/");
   }
 
   return (
-    <DashboardShell>
-      {children}
-    </DashboardShell>
+    <SidebarProvider defaultOpen={false}>
+      <AdminAICShell 
+        sidebar={<AppSidebar />}
+        actionVault={<AICActionVault />}
+      >
+        {children}
+      </AdminAICShell>
+    </SidebarProvider>
   );
 }

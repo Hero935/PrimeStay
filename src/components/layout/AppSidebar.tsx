@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { PlanUsageProgress } from "./PlanUsageProgress";
 
 /**
  * 系統側邊導航組件
@@ -164,6 +165,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
+      {/* 方案額度進度條 (僅房東/代管可見) */}
+      {role && ["LANDLORD", "MANAGER"].includes(role) && (
+        <div className="px-4 py-4 mt-auto border-t group-data-[collapsible=icon]:hidden">
+          <PlanUsageProgress />
+        </div>
+      )}
       <SidebarRail />
     </Sidebar>
   );

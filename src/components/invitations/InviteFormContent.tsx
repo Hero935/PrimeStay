@@ -26,6 +26,8 @@ interface Organization {
  */
 interface InviteFormContentProps {
   targetRole: "LANDLORD" | "MANAGER" | "TENANT";
+  targetPlan?: string;
+  onPlanChange?: (plan: string) => void;
   selectedOrganizationId?: string;
   onOrganizationChange?: (id: string) => void;
   organizations?: Organization[];
@@ -36,6 +38,8 @@ interface InviteFormContentProps {
 
 export function InviteFormContent({
   targetRole,
+  targetPlan,
+  onPlanChange,
   selectedOrganizationId,
   onOrganizationChange,
   organizations = [],
@@ -45,7 +49,25 @@ export function InviteFormContent({
 }: InviteFormContentProps) {
   return (
     <div className="grid gap-4 py-4">
-      {/* 房東邀請採自定義組織模式，管理者邀請房東不再需要預選組織 */}
+      {/* 修正：僅 ADMIN 可邀請 LANDLORD 或 專業代管，並指派方案 */}
+      {(targetRole === "LANDLORD" || (targetRole === "MANAGER" && !selectedOrganizationId)) && onPlanChange && (
+        <div className="grid gap-2">
+          <Label htmlFor="plan">預設訂閱方案</Label>
+          <Select
+            value={targetPlan}
+            onValueChange={onPlanChange}
+          >
+            <SelectTrigger id="plan">
+              <SelectValue placeholder="選擇註冊後的預設方案" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="FREE">Free ($0 / 2間)</SelectItem>
+              <SelectItem value="STARTER">Starter ($299 / 10間)</SelectItem>
+              <SelectItem value="PRO">Pro ($999 / 50間)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {/* 房東邀請房客時顯示房源選擇 */}
       {targetRole === "TENANT" && (

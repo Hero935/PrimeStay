@@ -1,4 +1,4 @@
-# 📋 整合式組織與用戶管理 (Integrated Org & User Management Tree) 規格文件
+# 📋 整合式組織與用戶管理 (Integrated Org & User Management Tree) 與 SaaS 收費規格
 
 ## 1. 系統概述
 旨在提供一個直觀、高端且具備層級感的操作界面，將「組織、房東、房賃、代管人員、房客」五個維度整合於單一樹狀視圖中。系統會根據登入者的角色，動態過濾其可見的資料範圍。
@@ -7,23 +7,19 @@
 
 | 角色 (Role) | 可見根節點 | 層級深度 | 權限範圍 |
 | :--- | :--- | :--- | :--- |
-| **ADMIN** | 所有 Organizations | 全展開 | 全系統維護、停權/恢復用戶。 |
+| **ADMIN** | 所有 Organizations | 全展開 | SaaS 營運監控、邀請與資源管理、全平台成員治理 (全域停權)、強制調整訂閱方案。 |
 | **LANDLORD** | 所屬 Organization | 全展開 | 組織內資產與人員管理、指派 Manager。 |
 | **MANAGER** | 所屬 Organization | 僅顯示負責房源 & 房客 | 日常維運、查看所屬房客帳單/報修。 |
 | **TENANT** | (不採用樹狀管理) | N/A | 僅查看個人合約與帳單。 |
 
 ## 3. UI/UX 設計理念 (角色化一站式扁平管理)
 
-### 3.1 PC 端 (Desktop Layout) - 主從式扁平索引介面
-- **左側身分清單 (Role-based Flat Index)**:
-    - 取消遞迴樹狀顯示，改為根據角色顯示對應的「核心管理清單」。
-    - **管理者 (Admin)**: 顯示全系統「房東列表」。
-    - **代管 (Manager)**: 顯示「授權房東列表」。
-    - **房東 (Landlord)**: 顯示「房源列表」。
-- **右側工作區內容 (Dynamic Workspace)**:
-    - 採用 **Tabs (頁籤)** 進行內容導航。
-    - **[組織中心]**: 顯示該組織的基本資料與資產現狀。
-    - **[用戶清單]**: 整合「房東、經理、房客」於單一列表，並透過角色標籤區分。
+### 3.1 PC 端 (Desktop Layout) - Admin Intelligence & Command (AIC) v3
+詳見 [`docs/admin_v2_design_spec.md`](docs/admin_v2_design_spec.md)。
+- **設計目標**: 費用與營收監控、生態健康診斷 (出租率/訪客流量)、零滾動 (Zero-Scroll)。
+- **四大監控維度**: 成本總額 (DB/Media)、收益總額 (MRR)、出租效能 (Occupancy)、獲客流量 (Visitor Traffic)。
+- **視覺風格**: 黑曜石戰略儀表板 (Obsidian Dark)，採用嵌入式微型圖表 (Sparklines) 提升資訊密度。
+- **治理模型**: 具備全平台成員一鍵停權與強制訂閱重置權限。
 - **狀態標籤 (Status Indicators)**:
     - 🏢 組織：深金屬色調，顯示組織名稱。
     - 👤 房東：藍色標章。
@@ -81,3 +77,39 @@ erDiagram
 - `CustomNodeRenderer`: 渲染不同類型節點的 icon 與文字細節。
 - `NodeActionToolbar`: 節點右鍵選單或 Hover 顯示的操作列。
 - `EntityDetailPanel`: 右側或手機底部的抽屜式詳情頁。
+
+---
+
+## 6. 收費策略與方案限制 (SaaS Billing & Limits)
+
+### 6.1 訂閱方案概覽
+
+| 方案名稱 | 月費 (TWD) | 房源上限 | 適用對象 |
+| :--- | :--- | :--- | :--- |
+| **Free** | $0 | 2 間 | 測試用房東、體驗用戶。 |
+| **Starter** | $299 | 10 間 | 小型房東、獨立代管人員。 |
+| **Pro** | $999 | 50 間 | 專業代管公司、多房產房東。 |
+
+### 6.2 方案檢查流程 (Property Creation Guard)
+
+```mermaid
+sequenceDiagram
+    participant User as Landlord/Manager
+    participant API as API (/api/properties)
+    participant DB as Prisma (DB)
+    
+    User->>API: POST /api/properties (建立房源)
+    API->>DB: 查詢組織的當前房源數與 Plan
+    DB-->>API: 返回 Plan: STARTER, Count: 9
+    alt Count < Limit
+        API->>DB: 建立 Property
+        API-->>User: 成功 (201 Created)
+    else Count >= Limit
+        API-->>User: 失敗 (403 方案額度已滿，請升級)
+    end
+```
+
+### 6.3 角色變更與邀請邏輯
+- **Admin 專屬能力**: 僅 Admin 可在發送邀請時，指定用戶為 Landlord 或 Manager 並預設方案。
+- **Admin 限制**: 不參與任何房源管理、租約簽署、帳單核銷等具體業務。
+- **組織擁有權**: 訂閱方案與 `Organization` 綁定。原 Landlord 可將組織轉移給其他用戶，訂閱狀態隨之轉移。
