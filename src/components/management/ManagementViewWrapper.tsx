@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { ManagementTree } from "./ManagementTree";
 import {
   Building2,
@@ -24,6 +25,12 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
@@ -93,6 +100,8 @@ export function ManagementViewWrapper({
     fixAction: "",
     history: [40, 70, 45, 90, 65, 80, 50, 95, 40, 60, 75, 45, 85, 55, 70]
   });
+  const { data: session } = useSession();
+  const currentRole = (session?.user as any)?.role;
   const isMobile = useIsMobile();
 
   /**
@@ -498,24 +507,51 @@ export function ManagementViewWrapper({
                           label: "實體數",
                           value: node.metadata?.propertiesCount ?? stats.properties,
                           color: "text-blue-600",
-                          icon: <Building2 className="size-4"/>
+                          icon: <Building2 className="size-4"/>,
+                          description: "當前組織或房東下轄的所有房源實體總數",
+                          visible: true
                         },
                         {
                           label: "授權人",
                           value: node.metadata?.landlordsCount ?? stats.landlords,
                           color: "text-amber-600",
-                          icon: <UsersIcon className="size-4"/>
+                          icon: <UsersIcon className="size-4"/>,
+                          description: "具有管理權限的授權房東或主要負責人數量",
+                          visible: currentRole === "ADMIN" // 僅管理者可見全局授權人資訊
                         },
-                        { label: "穩定度", value: "99%", color: "text-emerald-600", icon: <ShieldCheck className="size-4"/> },
-                        { label: "級別", value: "PRO", color: "text-slate-600", icon: <Zap className="size-4"/> }
-                      ].map((stat, i) => (
-                        <div key={i} className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-between transition-all hover:border-slate-200">
-                          <div className="flex items-center justify-between mb-1">
-                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</span>
-                             <span className={cn("opacity-40", stat.color)}>{stat.icon}</span>
-                          </div>
-                          <p className={cn("text-xl font-bold tracking-tight", stat.color)}>{stat.value}</p>
-                        </div>
+                        {
+                          label: "穩定度",
+                          value: "99%",
+                          color: "text-emerald-600",
+                          icon: <ShieldCheck className="size-4"/>,
+                          description: "系統運行可用性與服務水平協議 (SLA) 達成率",
+                          visible: true
+                        },
+                        {
+                          label: "級別",
+                          value: node.metadata?.plan || (["TENANT", "MANAGER"].includes(node.type.toUpperCase()) ? "N/A" : "FREE"),
+                          color: "text-slate-600",
+                          icon: <Zap className="size-4"/>,
+                          description: "當前實體所屬的服務訂閱等級 (如 FREE, STARTER, PRO)",
+                          visible: ["ADMIN", "LANDLORD", "MANAGER"].includes(currentRole) // 指標對管理者、房東、經理具參考價值
+                        }
+                      ].filter(s => s.visible).map((stat, i) => (
+                        <TooltipProvider key={i}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-between transition-all hover:border-slate-200 cursor-help">
+                                <div className="flex items-center justify-between mb-1">
+                                   <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</span>
+                                   <span className={cn("opacity-40", stat.color)}>{stat.icon}</span>
+                                </div>
+                                <p className={cn("text-xl font-bold tracking-tight", stat.color)}>{stat.value}</p>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="top">
+                              <p>{stat.description}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       ))}
                     </div>
 
@@ -559,7 +595,16 @@ export function ManagementViewWrapper({
                   <div className="w-full xl:w-[320px] bg-slate-900 border-l border-white/5 flex flex-col shrink-0 overflow-hidden">
                     <div className="p-6 border-b border-white/5 space-y-8">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">系統診斷 DNA</span>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest cursor-help underline underline-offset-4 decoration-blue-400/30">系統診斷 DNA</span>
+                            </TooltipTrigger>
+                            <TooltipContent side="right">
+                              <p>Nexus Pulse 核心監控：即時追踪節點負載、延遲與運作健康度</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                         <Badge className="bg-emerald-500/10 text-emerald-500 text-[8px] border-none font-black h-5">即時中</Badge>
                       </div>
                       

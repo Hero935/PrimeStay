@@ -277,6 +277,7 @@ export async function GET(request: Request) {
             diagnostics: await getDiagnosticDNA("landlord", org.owner.id, org.id),
             metadata: {
               orgId: org.id,
+              plan: org.plan,
               propertiesCount: org.properties.length,
               landlordsCount: memberUsers.filter((m: any) => m.role === "LANDLORD").length || 1,
               deepUsers: Array.from(deepUsersMap.values())
@@ -298,6 +299,12 @@ export async function GET(request: Request) {
           }
         });
 
+        // 需包含組織計畫資訊
+        const ownerOrg = await prisma.organization.findFirst({
+           where: { ownerId: ownerId },
+           select: { plan: true }
+        });
+
         flatData = await Promise.all(properties.map(async (p: any) => ({
           id: p.id,
           name: `${p.address} (${p.roomNumber})`,
@@ -306,6 +313,7 @@ export async function GET(request: Request) {
           hasChildren: true,
           diagnostics: await getDiagnosticDNA("property", p.id),
           metadata: {
+            plan: ownerOrg?.plan,
             // 房地產層級：僅顯示該房源的租客與經理
             deepUsers: p.contracts.map((c: any) => ({
               id: c.tenant.id,
