@@ -148,21 +148,51 @@ export function ManagementViewWrapper({
   };
 
   /**
+   * 統計節點下轄資訊
+   * 實體：所有下轄房源 (property)
+   * 授權人：所有下轄房東 (landlord)
+   */
+  const getEntityStats = (node: ManagementNode) => {
+    let properties = 0;
+    let landlords = 0;
+
+    const traverse = (target: any) => {
+      if (target.type === "property") properties++;
+      if (target.type === "landlord") landlords++;
+      
+      if (target.children) {
+        target.children.forEach((child: any) => traverse(child));
+      }
+    };
+
+    // 統計從當前節點的子代開始
+    if (node.children) {
+      node.children.forEach(child => traverse(child));
+    }
+
+    return { properties, landlords };
+  };
+
+  /**
    * 遞迴提取節點內所有人員
-   * 遵循層級感知過濾規則 (docs/roles.md#6.3)
+   * 遵循用戶新定義：成員應包含房東與房客
    * @param node 當前選中的節點
    */
   const getFlattenedUsers = (node: ManagementNode): FlattenedUser[] => {
+    // 優先讀取 API 提供的深度成員快取 (Nexus Index Deep Aggregation)
+    // 這對於「組織」與「房東」層級至關重要，因為它們需要看到下轄所有層級的人員
+    if (node.metadata?.deepUsers && Array.isArray(node.metadata.deepUsers)) {
+      return node.metadata.deepUsers.map((u: any) => ({
+        ...u,
+        role: u.role || "UNKNOWN",
+        status: u.status || "ACTIVE"
+      }));
+    }
+
     const users: FlattenedUser[] = [];
-
-    const traverse = (target: any, context?: string, currentDepth = 0) => {
-      // 根據起始節點類型決定抓取深度
-      // 組織層級：僅抓取 Owner/Landlord 層級
-      if (node.type === "organization" && currentDepth > 1) return;
-      // 房東層級：可抓取 Manager
-      if (node.type === "landlord" && currentDepth > 1 && target.type === "tenant") return;
-
-      if (["landlord", "manager", "tenant"].includes(target.type)) {
+    const traverse = (target: any, context?: string) => {
+      // 若無深度快取，降級為傳統遞迴 (僅限已加載部分)
+      if (["landlord", "tenant", "manager"].includes(target.type)) {
         if (!users.find(u => u.id === target.id)) {
           users.push({
             id: target.id,
@@ -176,7 +206,7 @@ export function ManagementViewWrapper({
       }
       if (target.children) {
         target.children.forEach((child: any) => {
-          traverse(child, target.type === "property" ? target.name : context, currentDepth + 1);
+          traverse(child, target.type === "property" ? target.name : context);
         });
       }
     };
@@ -318,6 +348,7 @@ export function ManagementViewWrapper({
    */
   const renderWorkspace = (node: ManagementNode, showBack = false) => {
     const users = getFlattenedUsers(node);
+    const stats = getEntityStats(node);
 
     return (
       <div className="flex-1 flex flex-col h-full bg-slate-50/20 overflow-hidden animate-in fade-in duration-300">
@@ -418,8 +449,18 @@ export function ManagementViewWrapper({
                     {/* 指標快速覽 (4 Column Row) */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                       {[
-                        { label: "實體數", value: node.children?.length || 0, color: "text-blue-600", icon: <Building2 className="size-4"/> },
-                        { label: "授權人", value: users.length, color: "text-amber-600", icon: <UsersIcon className="size-4"/> },
+                        {
+                          label: "實體數",
+                          value: node.metadata?.propertiesCount ?? stats.properties,
+                          color: "text-blue-600",
+                          icon: <Building2 className="size-4"/>
+                        },
+                        {
+                          label: "授權人",
+                          value: node.metadata?.landlordsCount ?? stats.landlords,
+                          color: "text-amber-600",
+                          icon: <UsersIcon className="size-4"/>
+                        },
                         { label: "穩定度", value: "99%", color: "text-emerald-600", icon: <ShieldCheck className="size-4"/> },
                         { label: "級別", value: "PRO", color: "text-slate-600", icon: <Zap className="size-4"/> }
                       ].map((stat, i) => (

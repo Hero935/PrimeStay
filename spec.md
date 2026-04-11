@@ -52,18 +52,20 @@ sequenceDiagram
     participant DB as PostgreDB (Prisma)
     
     User->>Tree: 進入管理台
-    Tree->>API: GET /api/management/tree
-    API->>API: 檢查登入者身份 (JWT)
+    Tree->>API: GET /api/management/tree (Nexus Index)
+    API->>API: 檢查登入者身份 (JWT/Session)
     alt ADMIN
-        API->>DB: 查詢 ALL Organizations + All Links
+        API->>DB: 查詢所有組織 (起始點)
     else LANDLORD
-        API->>DB: 查詢 Owned Organization + Sub-entities
+        API->>DB: 查詢該用戶擁有的組織 (起始點)
     else MANAGER
-        API->>DB: 僅查詢被指派的 Property + Tenants
+        API->>DB: 查詢該用戶負責房源所屬的組織 (對齊階層)
     end
-    DB-->>API: 返回資料
-    API-->>Tree: 返回扁平化資料清單 (Flat List JSON)
-    Tree-->>User: 渲染「戰略管理中樞 (Management Hub)」
+    Note over API,DB: 執行深度統計 (_count) 與成員快取 (deepUsers)
+    DB-->>API: 返回節點資料 + metadata
+    API-->>Tree: 返回樹狀結構 (支援動態 Pulse 燈號)
+    Tree->>Tree: 根據 selectedNode 進行背景資料同步 (Lazy Load Sync)
+    Tree-->>User: 渲染工作區 (統計數據、成員清單、實體網格)
 ```
 
 ### 4.2 物件關聯圖 (ERD - 管理樹架構)
