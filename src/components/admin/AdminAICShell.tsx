@@ -14,7 +14,7 @@ interface AdminAICShellProps {
   actionVault?: React.ReactNode;
 }
 
-import { ShieldAlert, Menu, LayoutDashboard, ShieldCheck, Building2, Users, Mail, Settings, PanelRightClose, PanelRightOpen } from "lucide-react";
+import { ShieldAlert, Menu, LayoutDashboard, ShieldCheck, Building2, Users, Mail, Settings } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -26,7 +26,6 @@ export function AdminAICShell({
   actionVault,
 }: AdminAICShellProps) {
   const pathname = usePathname();
-  const [isVaultOpen, setIsVaultOpen] = React.useState(false);
   
   const mobileNavItems = [
     { title: "管理總覽", url: "/admin", icon: LayoutDashboard },
@@ -52,18 +51,7 @@ export function AdminAICShell({
                 <span className="text-xs font-bold tracking-widest text-slate-900 uppercase">Strategic</span>
             </div>
             <div className="flex items-center gap-2">
-                {/* 桌面版右側面板切換按鈕 */}
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsVaultOpen(!isVaultOpen)}
-                    className="hidden lg:flex text-slate-500 hover:text-indigo-600 transition-colors"
-                    title={isVaultOpen ? "隱藏行動面板" : "展開行動面板"}
-                >
-                    {isVaultOpen ? <PanelRightClose className="w-5 h-5" /> : <PanelRightOpen className="w-5 h-5" />}
-                </Button>
-
-                {/* 手機版右側面板觸發 */}
+                {/* 系統風險告警面板觸發 */}
                 <Sheet>
                    <SheetTrigger asChild>
                       <Button variant="ghost" size="icon" className="relative group">
@@ -128,18 +116,6 @@ export function AdminAICShell({
           {children}
         </div>
       </main>
-
-      {/* [C] 命令與告警面板 - Action Vault (桌面版可切換) */}
-      <aside
-        className={cn(
-          "hidden lg:block flex-none border-l bg-slate-50/80 backdrop-blur-sm overflow-hidden transition-all duration-300 ease-in-out",
-          isVaultOpen ? "w-[380px]" : "w-0 border-l-0 opacity-0"
-        )}
-      >
-        <div className="h-full w-[380px]">
-          {actionVault}
-        </div>
-      </aside>
       </div>
 
       <style jsx global>{`
