@@ -9,6 +9,7 @@ import {
   Loader2,
   ShieldCheck,
   Users as UsersIcon,
+  UserCircle,
   Pin,
   PinOff,
   Filter,
@@ -89,7 +90,7 @@ function ManagementTreeNode({
   const getIcon = () => {
     switch (node.type) {
       case "organization": return <Building2 className="w-4 h-4 text-slate-900" />;
-      case "landlord": return <UsersIcon className="w-4 h-4 text-blue-500" />;
+      case "landlord": return <UserCircle className="w-4 h-4 text-blue-500" />;
       case "property": return <Home className="w-4 h-4" />;
       case "manager": return <ShieldCheck className="w-4 h-4 text-amber-500" />;
       case "tenant": return <UsersIcon className="w-4 h-4 text-slate-400" />;

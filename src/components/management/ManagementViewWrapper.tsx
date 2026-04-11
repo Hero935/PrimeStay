@@ -13,7 +13,8 @@ import {
   Zap,
   ExternalLink,
   ShieldCheck,
-  Loader2
+  Loader2,
+  UserCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -67,6 +68,7 @@ export function ManagementViewWrapper({
   initialSearchTerm?: string;
 }) {
   const [selectedNode, setSelectedNode] = useState<ManagementNode | null>(null);
+  const [isSyncingChildren, setIsSyncingChildren] = useState(false);
   const [isQuickActionOpen, setIsQuickActionOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState(externalSearch || "");
   const [treeKey, setTreeKey] = useState(0);
@@ -85,13 +87,34 @@ export function ManagementViewWrapper({
   const isMobile = useIsMobile();
 
   /**
+   * 實作定義之圖標映射 (docs/roles.md#6.2)
+   */
+  const getEntityIcon = (type: string, className?: string) => {
+    switch (type) {
+      case "organization": return <Building2 className={cn("size-5", className)} />;
+      case "landlord": return <UserCircle className={cn("size-5 text-blue-500", className)} />;
+      case "property": return <Home className={cn("size-5 text-emerald-400", className)} />;
+      case "manager": return <ShieldCheck className={cn("size-5 text-amber-500", className)} />;
+      case "tenant": return <UsersIcon className={cn("size-5 text-slate-400", className)} />;
+      default: return <Home className={cn("size-5", className)} />;
+    }
+  };
+
+  /**
    * 遞迴提取節點內所有人員
+   * 遵循層級感知過濾規則 (docs/roles.md#6.3)
    * @param node 當前選中的節點
    */
   const getFlattenedUsers = (node: ManagementNode): FlattenedUser[] => {
     const users: FlattenedUser[] = [];
 
-    const traverse = (target: any, context?: string) => {
+    const traverse = (target: any, context?: string, currentDepth = 0) => {
+      // 根據起始節點類型決定抓取深度
+      // 組織層級：僅抓取 Owner/Landlord 層級
+      if (node.type === "organization" && currentDepth > 1) return;
+      // 房東層級：可抓取 Manager
+      if (node.type === "landlord" && currentDepth > 1 && target.type === "tenant") return;
+
       if (["landlord", "manager", "tenant"].includes(target.type)) {
         if (!users.find(u => u.id === target.id)) {
           users.push({
@@ -106,7 +129,7 @@ export function ManagementViewWrapper({
       }
       if (target.children) {
         target.children.forEach((child: any) => {
-          traverse(child, target.type === "property" ? target.name : context);
+          traverse(child, target.type === "property" ? target.name : context, currentDepth + 1);
         });
       }
     };
@@ -196,7 +219,13 @@ export function ManagementViewWrapper({
     if (node.status !== "ACTIVE") return null;
 
     let warnings: string[] = [];
-    if (node.type === "landlord") {
+    if (node.type === "organization") {
+      warnings = [
+        "組織停權將導致旗下所有房東帳號進入受限模式",
+        "全組織所有房源將於市場平台端集體下架",
+        "所有進行中的智慧門鎖與支付網關將即刻切斷存取"
+      ];
+    } else if (node.type === "landlord") {
       warnings = [
         "此帳號停權後，所有關聯組織之房源將自動隱藏 (Private)",
         "組織下所有成員 (Manager) 將轉為唯讀模式",
@@ -261,7 +290,7 @@ export function ManagementViewWrapper({
           )}
 
           <div className="size-10 bg-white/10 shrink-0 rounded-lg flex items-center justify-center border border-white/10 text-white overflow-hidden backdrop-blur-md">
-            {node.type === "landlord" ? <Building2 className="size-5" /> : <Home className="size-5 text-emerald-400" />}
+            {getEntityIcon(node.type, "size-6 text-white")}
           </div>
 
           <div className="min-w-0 flex-1">
@@ -282,7 +311,13 @@ export function ManagementViewWrapper({
             <div className="flex items-center gap-1.5 mt-0.5 whitespace-nowrap">
                <ShieldCheck className="size-3 text-blue-500/80" />
                <span className="text-[9px] font-black uppercase tracking-widest text-slate-500/80 truncate">
-                 NEXUS INDEX {" > "} {node.type} {" > "} {node.id.split("-").pop()}
+                 NEXUS INDEX {" > "}
+                 {node.type === "organization" && "組織"}
+                 {node.type === "landlord" && "組織 > 房東"}
+                 {node.type === "property" && "組織 > 房東 > 房源"}
+                 {node.type === "manager" && "房源 > 經理"}
+                 {node.type === "tenant" && "房源 > 房客"}
+                 {" > "} {node.id.split("-").pop()}
                </span>
             </div>
           </div>
@@ -354,13 +389,14 @@ export function ManagementViewWrapper({
                     {/* 關鍵子實體資產網格 (縮小版) */}
                     <div className="bg-white rounded-xl border shadow-sm p-6 space-y-4">
                       <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] flex items-center gap-2">
-                         <MapPin className="size-4 text-blue-600" /> 核心資產網格 (高密度模式)
+                         <MapPin className="size-4 text-blue-600" />
+                         {node.type === "organization" ? "下轄房東清單" : node.type === "landlord" ? "旗下房源網格" : "關聯子實體"} (高密度)
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {node.children?.slice(0, 6).map((item: any) => (
                           <div key={item.id} className="group p-4 bg-slate-50/50 hover:bg-white rounded-xl border border-transparent hover:border-primary/10 hover:shadow-md transition-all cursor-pointer flex items-center gap-4">
                             <div className="size-10 bg-white rounded-lg flex items-center justify-center border shadow-sm text-slate-400 group-hover:bg-primary group-hover:text-white transition-all">
-                              <Home className="size-5" />
+                              {getEntityIcon(item.type, "size-5")}
                             </div>
                             <div className="min-w-0 flex-1">
                               <p className="font-bold text-sm truncate text-slate-800">{item.name}</p>
@@ -589,7 +625,7 @@ export function ManagementViewWrapper({
                   {node.children?.map((item: any) => (
                     <div key={item.id} className="group p-5 bg-white hover:bg-slate-50 rounded-xl border shadow-sm transition-all cursor-pointer flex flex-col gap-4">
                       <div className="size-12 bg-slate-50 rounded-lg flex items-center justify-center border shadow-inner group-hover:bg-white group-hover:border-primary/20 transition-all scale-100 group-hover:scale-105 duration-300">
-                        <Home className="size-6 text-slate-400 group-hover:text-primary" />
+                        {getEntityIcon(item.type, "size-6 text-slate-400 group-hover:text-primary")}
                       </div>
                       <div className="min-w-0">
                         <p className="font-bold text-sm truncate text-slate-800">{item.name}</p>

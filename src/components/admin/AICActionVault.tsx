@@ -151,14 +151,17 @@ function LiveAuditStream() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchLogs = () => {
-            fetch("/api/admin/stats", { method: "POST" })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.logs) setLogs(data.logs);
-                    setLoading(false);
-                })
-                .catch(err => console.error("Failed to fetch logs:", err));
+        const fetchLogs = async () => {
+            try {
+                const res = await fetch("/api/admin/stats", { method: "POST" });
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                const data = await res.json();
+                if (data.logs) setLogs(data.logs);
+                setLoading(false);
+            } catch (err) {
+                console.error("Failed to fetch logs:", err);
+                setLoading(false);
+            }
         };
 
         fetchLogs();

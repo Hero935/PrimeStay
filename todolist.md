@@ -1,48 +1,27 @@
-# 📋 PrimeStay 治理中心整合計畫任務清單
+# 📋 管理中心架構修正任務清單
 
-## 🏗️ 規劃與文件
-- [x] 檢視 `docs/roles.md` 並評估整合影響
-- [x] 更新 `spec.md` 以反映情境感知治理與風險告知規格
-- [x] 重構 `spec.md`：移除重複的 Role 定義並引用 `docs/roles.md`
-- [x] 生成管理中心設計架構文檔 [`docs/management_center_architecture.md`](docs/management_center_architecture.md)
-- [x] 提供 `admin/management` UI 設計建議報告
+## 🎯 目標
+確保管理中心索引遵循「組織 > 房東 > 房源 > 房客」階層結構，並在所有使用者角色下保持一致的導航體驗。
 
-## 💻 核心實作 - /admin/management
-- [x] **`ManagementViewWrapper.tsx` 重構**
-    - [x] 將右側 Diagnostic 區塊改造為 `CommandVault`
-    - [x] 實作節點類型識別邏輯 (Node Type Context)
-    - [x] 實作 `GovernanceImpactAdvisor` 組件，根據選中節點角色顯示停權後的連鎖影響
-- [x] **`ManagementTree.tsx` 優化**
-    - [x] 調整燈號顏色邏輯：`SUSPENDED` 狀態變為灰色物理熄滅感
-    - [x] 強化 `SUSPENDED` 節點文字的灰階與刪除線處理
-- [x] **治理功能移植**
-    - [x] 整合 `OrgPlanManager` 到 `CommandVault` (組織選取時)
-    - [x] 整合 `UserStatusToggle` 到 `CommandVault` (用戶/房東選取時)
+## 🛠️ 任務進度
+- [x] **建立任務清單**
+- [x] **API 階層對齊**
+    - [x] 修正 `LANDLORD` 角色起始點為其擁有的組織。
+    - [x] 修正 `MANAGER` 角色起始點為其負責組織的房權。
+    - [x] 確保 API 下轄內容符合規格映射表。
+- [x] **UI 語意化與顯示優化**
+    - [x] 實作 `getEntityIcon` 自動切換圖標。
+    - [x] 實作動態標題與 Icon (下轄房東清單 / 旗下房源網格)。
+    - [x] 修正 `ImpactAdvisor` 補全組織層級警告 (docs/roles.md#4)。
+- [x] **邏輯與資料同步**
+    - [x] 實作「成員清單」層級感知過濾 (不允許組織層級看到房客/經理)。
+    - [x] 修正麵包屑 (Breadcrumbs) 的血緣路徑與類型對應。
+    - [x] 解決 Lazy-loaded Node 在選取後右側網格暫時空白的問題。
+- [x] **驗證與文件更新**
+    - [x] 建立內容規格說明於 docs/roles.md。
+    - [x] 更新 `report.md`。
+    - [x] 更新 `readme.md`。
 
-## 🧪 驗證與過渡
-- [x] 測試從樹狀圖點擊房東後，直接在右側執行停權的完整流程
-- [x] 驗證停權警告文字是否符合 `roles.md` 之定義
-- [x] 將舊有的 `/admin/organizations` 與 `/admin/users` 路由重新導向至 `/admin/management`
-- [x] 更新 `readme.md` 說明文檔
-- [x] 建立任務完成 Checkpoint (Commit)
-
-## 🎨 未來 UI/UX 優化 (根據設計建議)
-- [x] **管理中心索引 (Tree) 強化**
-    - [x] 實作「導航釘選 (Pinned Nodes)」功能，置頂常用組織/房東
-    - [x] 增加進階過濾器：支援狀態 (Suspended) 篩選
-- [x] **診斷 DNA 交互優化**
-    - [x] 實作互動式 Sparklines：點擊圖表柱狀體跳轉模擬稽核日誌
-    - [x] 在 Utilization 條形圖整合預測性警戒線 (基於 7 日數據預估)
-- [x] **情境感知視覺體驗**
-    - [x] 實作「停權氛圍模式」：選中停權節點時，背景網格 (Grid Canvas) 切換為深紅色調
-- [x] **治理操作效率提升**
-    - [x] 整合全域指令列 (Command Palette `Cmd+K`)
-    - [x] 實作成員清單「批次停權/重置角色」功能
-- [x] **系統邏輯修補 (Bug Fix & Gaps)**
-    - [x] 修正「數據報告」跳轉循環：若目標路由未實作，應引導至內部預覽或顯示開發中
-    - [x] 補完「快速管理」：在 `QuickActionDrawer` 加入 `Property` 專屬操作（狀態切換/人員指派）
-- [x] **效能與安全強化**
-    - [x] 優化 Admin 視圖 API：引入分層延遲加載 (Lazy Loading) 以防止大型數據集延遲
-    - [x] 實作 POST/PATCH 行動的後端所屬權驗證 (api-guards.ts)
-- [x] **閉環治理解決方案**
-    - [x] 將掃描報告中的建議 (Insights) 轉化為可點擊的「一鍵修復」按鈕
+## 📌 規格參考
+- 結構定義：`docs/roles.md#6`
+- UI 映射表：`docs/roles.md#6.2`

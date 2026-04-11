@@ -125,25 +125,38 @@ export async function GET(request: Request) {
 
     } else if (role === "MANAGER") {
       if (!parentId) {
-        // Manager 初次取得所屬房東(透過房源)
-        const managedProperties = await prisma.property.findMany({
-          where: { managerId: userId },
-          include: { organization: { include: { owner: true } } }
+        // Manager 初次取得所屬組織 (Nexus Root)
+        const orgs = await prisma.organization.findMany({
+          where: { properties: { some: { managerId: userId } } },
+          include: { owner: true }
         });
-        const landlordMap = new Map();
-        managedProperties.forEach((p: any) => {
-          const owner = p.organization.owner;
-          if (!landlordMap.has(owner.id)) {
-            landlordMap.set(owner.id, {
-              id: `landlord-${owner.id}`,
-              name: owner.name || owner.email,
-              type: "landlord",
-              subtitle: p.organization.name,
-              hasChildren: true
-            });
-          }
+        flatData = orgs.map((org: any) => ({
+          id: `org-${org.id}`,
+          originalId: org.id,
+          name: org.name,
+          type: "organization",
+          subtitle: `Owner: ${org.owner.name || org.owner.email}`,
+          status: "ACTIVE",
+          hasChildren: true,
+          metadata: { plan: org.plan }
+        }));
+      } else if (parentType === "organization") {
+        // 取得組織下的房東 (對於 Manager 而言，就是該組織的 Owner)
+        const orgId = parentId.replace("org-", "");
+        const org = await prisma.organization.findUnique({
+          where: { id: orgId },
+          include: { owner: true }
         });
-        flatData = Array.from(landlordMap.values());
+        if (org) {
+          flatData = [{
+            id: `landlord-${org.owner.id}`,
+            name: org.owner.name || org.owner.email,
+            type: "landlord",
+            status: org.owner.status,
+            subtitle: "Organization Owner",
+            hasChildren: true
+          }];
+        }
       } else if (parentType === "landlord") {
         const ownerId = parentId.replace("landlord-", "");
         const properties = await prisma.property.findMany({
@@ -169,24 +182,56 @@ export async function GET(request: Request) {
 
     } else if (role === "LANDLORD") {
       if (!parentId) {
-        // Landlord 初次取得旗下房源
+        // Landlord 初次取得所屬組織 (Nexus Root)
         const orgs = await prisma.organization.findMany({
           where: { ownerId: userId },
-          include: { properties: true }
+          include: { owner: true }
         });
-        flatData = orgs.flatMap((org: any) => org.properties.map((p: any) => ({
-          id: `property-${p.id}`,
-          name: `${p.address} (${p.roomNumber})`,
-          subtitle: org.name,
-          type: "property",
-          status: p.status,
+        flatData = orgs.map((org: any) => ({
+          id: `org-${org.id}`,
+          originalId: org.id,
+          name: org.name,
+          type: "organization",
+          subtitle: "Your Organization",
+          status: "ACTIVE",
           hasChildren: true,
-          metadata: { orgName: org.name }
-        })));
+          metadata: { plan: org.plan }
+        }));
+      } else if (parentType === "organization") {
+        // 取得組織下的房東 (即本人)
+        const orgId = parentId.replace("org-", "");
+        const org = await prisma.organization.findUnique({
+          where: { id: orgId, ownerId: userId },
+          include: { owner: true }
+        });
+        if (org) {
+          flatData = [{
+            id: `landlord-${org.owner.id}`,
+            name: org.owner.name || org.owner.email,
+            type: "landlord",
+            status: org.owner.status,
+            subtitle: "You (Landlord)",
+            hasChildren: true
+          }];
+        }
+      } else if (parentType === "landlord") {
+        // 取得房東下的房源
+        const ownerId = parentId.replace("landlord-", "");
+        if (ownerId === userId) {
+          const properties = await prisma.property.findMany({
+            where: { organization: { ownerId: userId } }
+          });
+          flatData = properties.map((p: any) => ({
+            id: p.id,
+            name: `${p.address} (${p.roomNumber})`,
+            type: "property",
+            status: p.status,
+            hasChildren: true
+          }));
+        }
       } else if (parentType === "property") {
-        const propId = parentId.replace("property-", "");
         const p = await prisma.property.findUnique({
-          where: { id: propId },
+          where: { id: parentId },
           include: { manager: true, contracts: { where: { status: "OCCUPIED" }, include: { tenant: true } } }
         });
         if (p) {

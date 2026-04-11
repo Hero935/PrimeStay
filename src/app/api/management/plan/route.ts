@@ -20,9 +20,12 @@ export async function PATCH(req: Request) {
       return new NextResponse("Missing parameters", { status: 400 });
     }
 
+    // 處理前端可能帶有的 id 前綴 (由 ManagementTree 產生)
+    const cleanOrgId = orgId.startsWith("org-") ? orgId.replace("org-", "") : orgId;
+
     // 執行更新
     const updatedOrg = await prisma.organization.update({
-      where: { id: orgId },
+      where: { id: cleanOrgId },
       data: { plan: planId }
     });
 

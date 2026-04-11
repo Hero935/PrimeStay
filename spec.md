@@ -1,12 +1,10 @@
 # 📋 整合式組織與用戶管理 (Integrated Org & User Management Tree) 與 SaaS 收費規格
 
 ## 1. 系統概述
-旨在提供一個直觀、高端且具備層級感的操作界面，將「組織、房東、房賃、代管人員、房客」五個維度整合於單一樹狀視圖中。系統會根據登入者的角色，動態過濾其可見的資料範圍。
+旨在提供一個直觀、高端且具備層級感的操作界面，將「組織、房東、房源、管理人員、房客」整合於單一樹狀視圖中。系統採用「Nexus Index」架構，確保各管理層級之權責與導航邏輯一致。
 
-## 2. 角色權限與資料維度 (Roles & Data Visibility)
-本系統的角色定義、權限矩陣、註冊流程及停權政策，請統一參閱 [🏠 角色權限與加入流程規格 (`docs/roles.md`)](docs/roles.md)。
-
-系統將根據登入者的 `systemRole` (系統角色) 與 `memberRole` (組織角色) 動態過濾管理樹 (Management Tree) 的資料範圍與操作權限。
+## 2. 角色權限與設計導向 (Roles & Design Orientation)
+本系統的角色定義、權限矩陣、註冊流程、停權政策以及 **Nexus Index 導航架構**，請統一參閱 [🏠 角色權限與加入流程規格 (`docs/roles.md`)](docs/roles.md)。
 
 ## 3. UI/UX 設計理念 (角色化一站式扁平管理)
 
@@ -78,6 +76,9 @@ erDiagram
     PROPERTY ||--o{ CONTRACT : "出租予"
     CONTRACT ||--|| USER : "承租人 (TENANT)"
 ```
+
+### 4.3 管理層級與 UI 對應邏輯 (UI Hierarchy Mapping)
+詳細映射規則、各層級成員顯示過濾條件以及 UI 識別規範，請參閱 [角色權限規格 (docs/roles.md#6-nexus-index-導航架構與工作區映射)](docs/roles.md#6-nexus-index-導航架構與工作區映射)。
 
 ## 5. UI 元件清單 (整合版)
 - `ManagementViewWrapper`: 治理中心主容器，包含情境感知之 Action Vault。

@@ -60,7 +60,7 @@ export function OrgPlanManager({ orgId, currentPlan, orgName, onPlanUpdate }: Or
   };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"

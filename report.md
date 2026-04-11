@@ -1,34 +1,25 @@
-# 🛰️ PrimeStay 管理中心整合與診斷任務報告
+# 📋 管理中心索引架構修正任務報告
 
-## 1. 任務概述
-本任務旨在對 `admin/management` (統合治理中心) 進行代碼檢視、架構設計文檔編寫，並針對稽核發現的邏輯缺口與體驗問題進行實作修復。目前已完成從架構規劃到高階功能的全面實作。
+## 📌 完成事項摘要
 
-## 2. 完成事項清單
+我已完成「管理中心索引」的架構對齊與 UI 語意化修正任務，確保全系統遵循「組織 > 房東 > 房源 > 房客」的戰略階層。
 
-### 🏗️ 架構與規格 (Architect Mode)
-*   **設計架構文檔**：生成 [`docs/management_center_architecture.md`](docs/management_center_architecture.md)，定義 Context-Aware 交互邏輯與實體脈動 (Pulse) 視覺語言。
-*   **深度診斷報告**：在文檔中收錄關於快速管理缺項、路由循環 Bug 以及 API 效能的審核結果。
-*   **任務清單更新**：將設計建議轉化為具體的 `todolist.md` 實施項。
+### 1. 規格文檔與權限細化
+- **遷移與細化**：將層級定義與登入角色的起始視圖邏輯從 `spec.md` 遷移至 [`docs/roles.md`](docs/roles.md)，並在該處定義了詳細的「成員清單」顯示與過濾規則。
+- **組織視圖定義**：明確規定「組織」層級成員僅限顯示該組織的 `OWNER` (擁有者/房東)，以維持管理高層的純粹性。
 
-### 💻 代碼實作 (Code Mode)
-*   **效能優化 (Layered Lazy Loading)**：實作分層延遲加載機制。`ManagementTree` 現在僅初始載入根節點，展開時才透過 `/api/management/tree` 獲取子節點，大幅提升大數據集下的首屏渲染速度。
-*   **操作效率 (Command Palette Cmd+K)**：實作全域指令列，支援透過快捷鍵瞬間搜尋並跳轉至特定組織、房源或人員節點。
-*   **治理自動化 (One-click Fix)**：將 Diagnostic DNA 中的診斷建議轉化為「一鍵修復」功能。系統不僅偵測異常，更能主動引導管理員執行快取重置或資源優化。
-*   **進階導航釘選 (Pinned Nodes)**：在樹狀索引中實作節點釘選功能，支持使用者將常用組織、房源置頂，並結合 localStorage 實現狀態持久化。
-*   **智能診斷交互 (Interactive DNA)**：重構 Diagnostic DNA 視覺化組件，支援柱狀圖點擊跳轉「稽核日誌 (Audit Logs)」對應時間點，並實作「預測性警戒線 (Predictive Thresholding)」以動態警示潛在負載風險。
-*   **批次治理 (Batch Management)**：在成員清單中實作批次選取與操作功能，支援一鍵對多位用戶執行「批次停權」或「批次恢復」。
-*   **Bug 修正與品質檢查**：
-    *   解決「數據報告」按鈕導向無效路由的問題，加入版本提示避免跳轉無限循環。
-    *   修正 `ManagementViewWrapper.tsx` 中的語法作用域錯誤，確保所有治理組件狀態同步。
-    *   **實作治理數據持久化**：修正「快速指揮 (AIC Quick Cmd)」中變更方案與使用者狀態無法存回資料庫的問題。透過新建 `/api/management/plan` API 並重構 `OrgPlanManager` 與 `UserStatusToggle` 組件，確保所有操作均能正確寫入 Prisma 後端，並透過同步回調與 `treeKey` 重取機制即時更新樹狀索引狀態。
-    *   補完 `QuickActionDrawer` 中房源 (Property) 專屬管理區塊。
-*   **安全性強化**：在 `src/lib/api-guards.ts` 實作 `OwnershipGuard` 所有權驗證工具，防止越權操作 API。
-*   **視覺優化**：實作「停權氛圍模式」，增強管理選中停權實體時的視覺反饋。
+### 2. API 階層全角色對齊
+- **路徑重構**：修改 [`src/app/api/management/tree/route.ts`](src/app/api/management/tree/route.ts)，確保 `LANDLORD` 與 `MANAGER` 角色登入後，也是從其擁有的「組織」作為起始點出發。
+- **一致性保證**：解決了先前房東登入時起始點斷層的問題。
 
-## 3. 系統稽核結論
-*   **角色隔離**：目前 API 端角色裁剪機制運作良好，數據隔離性高，搭配 `OwnershipGuard` 已具備企業級安全性。
-*   **大數據處理**：透過 Lazy Loading 與虛擬化渲染 (SCROLL-ZERO) 策略，系統已具備處理 1000+ 節點以上的擴展性。
-*   **交互深度**：實作了從「偵測 (Diagnostic) -> 告知 (Impact Advisor) -> 執行 (One-click Fix)」的完整治理閉環。
+### 3. UI 語意化與體驗優化
+- **圖標語法化**：實作 `getEntityIcon` 函式。房東统一使用 `UserCircle` (藍色)，房源使用 `Home` (綠色)，組織使用 `Building2`。
+- **動態標題與 Icon**：工作區標題根據選取層級動態顯示（如：「下轄房東清單」、「旗下房源網格」）。
+- **麵包屑 (Breadcrumbs)**：將血緣路徑與 UI 階層掛鉤，提供直觀的層級導航感受。
+- **資料同步解決方案**：在 `ManagementViewWrapper` 加入自動補抓子實體機制，解決了 Lazy Loading 導致非展開狀態點擊後右側空白的問題。
 
-## 4. 結語
-管理中心 (Nexus Pulse) 已轉化為主動、高效且具備深度導航能力的治理核心。所有實作均嚴格遵循 `spec.md` 與 `docs/roles.md` 之規範，提升了 PrimeStay 平台的營運韌性。
+### 4. 工具欄位補充
+- **治理診斷**：在 `ImpactAdvisor` 中補充了針對「組織」被停權時的連鎖影響警示。
+
+## 🚀 執行建議
+當前架構已達成數據與 UI 的完全同步，建議未來若有新增實體層級（如：Region 區域），應優先於 `docs/roles.md` 的映射表中進行定義，再同步更新 `getEntityIcon` 與 API 分派邏輯。

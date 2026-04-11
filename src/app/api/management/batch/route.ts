@@ -20,14 +20,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "無效的使用者清單" }, { status: 400 });
     }
 
+    // 清理可能帶有的 ID 前綴 (如 landlord-xxx)
+    const cleanUserIds = userIds.map((id: string) => id.includes("-") ? id.split("-").pop()! : id);
+
     if (action === "SUSPEND") {
       await prisma.user.updateMany({
-        where: { id: { in: userIds } },
+        where: { id: { in: cleanUserIds } },
         data: { status: "SUSPENDED" }
       });
     } else if (action === "ACTIVATE") {
       await prisma.user.updateMany({
-        where: { id: { in: userIds } },
+        where: { id: { in: cleanUserIds } },
         data: { status: "ACTIVE" }
       });
     } else {
