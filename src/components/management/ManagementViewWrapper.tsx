@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ManagementTree } from "./ManagementTree";
 import {
   Building2,
@@ -53,7 +53,7 @@ interface FlattenedUser {
  * 2. 核心工作區採用多欄佈局，指標與 DNA 診斷即時呈現。
  * 3. 強化導航血緣感知 (Nexus Index Breadcrumbs)。
  */
-export function ManagementViewWrapper() {
+export function ManagementViewWrapper({ initialSelectedOrgId }: { initialSelectedOrgId?: string }) {
   const [selectedNode, setSelectedNode] = useState<ManagementNode | null>(null);
   const [isQuickActionOpen, setIsQuickActionOpen] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
@@ -427,7 +427,10 @@ export function ManagementViewWrapper() {
         "w-full lg:w-[350px] transition-all duration-300 shrink-0 flex flex-col bg-white border-r",
         isMobile && selectedNode ? "hidden" : "flex"
       )}>
-        <ManagementTree onNodeSelect={setSelectedNode} />
+        <ManagementTree
+          onNodeSelect={setSelectedNode}
+          initialSelectedId={initialSelectedOrgId}
+        />
       </div>
 
       {/* Main Command Area - 自適應填滿視窗空間 */}

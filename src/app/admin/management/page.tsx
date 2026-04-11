@@ -13,7 +13,10 @@ export const metadata: Metadata = {
  * 修正後的管理頁面入口
  * 移除寬度限制，確保在寬螢幕下能自動填滿，並調整高度適配。
  */
-export default async function ManagementPage() {
+export default async function ManagementPage(props: {
+  searchParams: Promise<{ orgId?: string }>;
+}) {
+  const searchParams = await props.searchParams;
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
@@ -22,7 +25,7 @@ export default async function ManagementPage() {
 
   return (
     <div className="flex flex-col h-full w-full">
-      <ManagementViewWrapper />
+      <ManagementViewWrapper initialSelectedOrgId={searchParams.orgId} />
     </div>
   );
 }

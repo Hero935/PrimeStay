@@ -26,6 +26,7 @@ interface ManagementNode {
 
 interface ManagementTreeProps {
   onNodeSelect: (node: ManagementNode) => void;
+  initialSelectedId?: string;
 }
 
 /**
@@ -142,17 +143,24 @@ function ManagementTreeNode({
  * 深度一致性修正：
  * 實作真正的遞迴樹狀結構，支援多層級展開與選取。
  */
-export function ManagementTree({ onNodeSelect }: ManagementTreeProps) {
+export function ManagementTree({ onNodeSelect, initialSelectedId }: ManagementTreeProps) {
   const [nodes, setNodes] = useState<ManagementNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedIndex, setSelectedIndex] = useState<string | null>(null);
 
+  // 當 initialSelectedId 變動時同步選取狀態
+  useEffect(() => {
+    if (initialSelectedId) {
+      setSelectedIndex(initialSelectedId);
+    }
+  }, [initialSelectedId]);
+
   useEffect(() => {
     async function fetchNodes() {
       try {
         const res = await fetch("/api/management/tree");
-        const data = await res.json();
+        const data: ManagementNode[] = await res.json();
         setNodes(data);
       } catch (err) {
         console.error("Failed to load management nodes", err);
@@ -162,6 +170,37 @@ export function ManagementTree({ onNodeSelect }: ManagementTreeProps) {
     }
     fetchNodes();
   }, []);
+
+  // 獨立副作用：當資料載入且存在初始選取 ID 時執行自動選取與過濾聯動
+  useEffect(() => {
+    if (!loading && nodes.length > 0 && initialSelectedId) {
+        const findNode = (entities: ManagementNode[]): ManagementNode | null => {
+            for (const node of entities) {
+                if (node.id === initialSelectedId) return node;
+                if (node.children) {
+                    const child = findNode(node.children);
+                    if (child) return child;
+                }
+            }
+            return null;
+        };
+
+        const target = findNode(nodes);
+        if (target) {
+            // 1. 自動同步搜尋框，達成索引過濾效果
+            if (!searchTerm) {
+                setSearchTerm(target.name);
+            }
+
+            // 2. 驅動右側詳情面板呈現
+            const timer = setTimeout(() => {
+                onNodeSelect(target);
+                setSelectedIndex(target.id);
+            }, 150);
+            return () => clearTimeout(timer);
+        }
+    }
+  }, [loading, nodes, initialSelectedId, onNodeSelect, searchTerm]);
 
   const filteredNodes = nodes.filter(node =>
     node.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

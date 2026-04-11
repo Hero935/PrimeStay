@@ -23,6 +23,18 @@
 - `src/components/management/ManagementViewWrapper.tsx` (邏輯補完)
 - `todolist.md` (進度追蹤)
 
-## 4. 下一步建議
+## 4. 組織治理補強 (Organization Governance)
+- **基礎設施快照 (Infrastructure Snapshot)**:
+    - 實作了 `OrgActions` 中的 `handleExportSnapshot` 功能，支持將組織元數據導出為標準 AIC v3 JSON 格式。
+- **權限重構 (Re-authentication)**:
+    - 實作了全域權限同步觸發器，並整合 `sonner` 彈出治理指令執行狀態。
+- **治理聯動 (Governance Nexus Deep-linking)**:
+    - **ID 協議對齊**：修復了 `OrgDetailButton` 中 UUID 與管理樹前端前綴 (`org-`) 不匹配的導航錯誤。
+    - **智能定位選取**：增強了 `ManagementTree` 組件，使其能響應 URL 參數自動執行預過濾與動態節點選取。
+- **UI 強化**:
+    - 為治理核心動作按鈕加入了 `Tooltip` 說明泡泡，提升管理員操作精確度。
+
+## 5. 下一步建議
 - 實作真正的後端 ACI 診斷 API 以取代目前的 `handleStartScan` 模擬邏輯。
 - 完善 `Modify Plan` 功能的 UI 對話框。
+- 建立全域 `Audit Log` 追蹤機制，紀錄所有組織管理動作。

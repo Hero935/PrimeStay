@@ -26,7 +26,7 @@ export function AdminAICShell({
   actionVault,
 }: AdminAICShellProps) {
   const pathname = usePathname();
-  const [isVaultOpen, setIsVaultOpen] = React.useState(true);
+  const [isVaultOpen, setIsVaultOpen] = React.useState(false);
   
   const mobileNavItems = [
     { title: "管理總覽", url: "/admin", icon: LayoutDashboard },

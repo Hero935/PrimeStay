@@ -23,6 +23,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { OrgPlanManager } from "./OrgPlanManager";
 import { OrgFilters } from "./OrgFilters";
+import { OrgActions } from "./OrgActions";
+import { OrgDetailButton } from "./OrgDetailButton";
 import { cn } from "@/lib/utils";
 
 export default async function AdminOrganizationsPage(props: {
@@ -223,9 +225,7 @@ export default async function AdminOrganizationsPage(props: {
                                        currentPlan={(org as any).plan}
                                        orgName={org.name}
                                     />
-                                    <button className="h-7 w-7 flex items-center justify-center border border-slate-200 rounded bg-white text-slate-400 hover:border-indigo-500/50 hover:text-indigo-600 transition-all shadow-sm" title="查看資源詳情">
-                                        <ArrowUpRight className="w-3 h-3" />
-                                    </button>
+                                    <OrgDetailButton orgId={org.id} />
                                </div>
                             </td>
                         </tr>
@@ -245,10 +245,7 @@ export default async function AdminOrganizationsPage(props: {
       {/* 底部導引與導航 */}
       <div className="flex justify-between items-center text-[9px] text-slate-700 font-mono font-bold uppercase tracking-widest mt-2">
          <div>治理週期：常規 | 實體活躍度：{organizations.length > 0 ? "穩定" : "無"}</div>
-         <div className="flex gap-6">
-            <button className="hover:text-amber-400 transition-colors">基礎設施快照 (.json)</button>
-            <button className="hover:text-indigo-400 transition-colors">權限重構 (Re-auth)</button>
-         </div>
+         <OrgActions organizations={organizations} />
       </div>
     </div>
   );
