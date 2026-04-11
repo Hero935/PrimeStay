@@ -14,7 +14,7 @@ interface AdminAICShellProps {
   actionVault?: React.ReactNode;
 }
 
-import { ShieldAlert, Menu, LayoutDashboard, ShieldCheck, Building2, Users, Mail, Settings } from "lucide-react";
+import { ShieldAlert, Menu, LayoutDashboard, ShieldCheck, Building2, Users, Mail, Settings, PanelRightClose, PanelRightOpen } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -26,6 +26,7 @@ export function AdminAICShell({
   actionVault,
 }: AdminAICShellProps) {
   const pathname = usePathname();
+  const [isVaultOpen, setIsVaultOpen] = React.useState(true);
   
   const mobileNavItems = [
     { title: "管理總覽", url: "/admin", icon: LayoutDashboard },
@@ -46,13 +47,24 @@ export function AdminAICShell({
 
       {/* [B] 戰略脈動區 - Strategic Pulse (Diagnostic Core) */}
       <main className="flex-1 overflow-y-auto custom-scrollbar relative flex flex-col bg-white">
-        {/* 手機版頂部工具欄 */}
-        <div className="lg:hidden flex items-center justify-between p-4 border-b bg-white/80 backdrop-blur-md sticky top-0 z-50">
+        {/* 頂部工具欄 - 統整手機導航與桌面版面板切換 */}
+        <div className="flex items-center justify-between p-4 border-b bg-white/80 backdrop-blur-md sticky top-0 z-50">
             <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-black text-xs">AIC</div>
                 <span className="text-xs font-bold tracking-widest text-slate-900 uppercase">Strategic</span>
             </div>
             <div className="flex items-center gap-2">
+                {/* 桌面版右側面板切換按鈕 */}
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsVaultOpen(!isVaultOpen)}
+                    className="hidden lg:flex text-slate-500 hover:text-indigo-600 transition-colors"
+                    title={isVaultOpen ? "隱藏行動面板" : "展開行動面板"}
+                >
+                    {isVaultOpen ? <PanelRightClose className="w-5 h-5" /> : <PanelRightOpen className="w-5 h-5" />}
+                </Button>
+
                 {/* 手機版右側面板觸發 */}
                 <Sheet>
                    <SheetTrigger asChild>
@@ -75,7 +87,7 @@ export function AdminAICShell({
                 {/* 手機版導航選單 */}
                 <Sheet>
                     <SheetTrigger asChild>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" className="lg:hidden">
                             <Menu className="w-5 h-5" />
                         </Button>
                     </SheetTrigger>
@@ -119,9 +131,14 @@ export function AdminAICShell({
         </div>
       </main>
 
-      {/* [C] 命令與告警面板 - Action Vault (手機版隱藏) */}
-      <aside className="hidden lg:block w-[380px] flex-none border-l bg-slate-50/80 backdrop-blur-sm overflow-hidden">
-        <div className="h-full">
+      {/* [C] 命令與告警面板 - Action Vault (桌面版可切換) */}
+      <aside
+        className={cn(
+          "hidden lg:block flex-none border-l bg-slate-50/80 backdrop-blur-sm overflow-hidden transition-all duration-300 ease-in-out",
+          isVaultOpen ? "w-[380px]" : "w-0 border-l-0 opacity-0"
+        )}
+      >
+        <div className="h-full w-[380px]">
           {actionVault}
         </div>
       </aside>
