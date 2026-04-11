@@ -8,6 +8,20 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/admin/organizations',
+        destination: '/admin/management',
+        permanent: true,
+      },
+      {
+        source: '/admin/users',
+        destination: '/admin/management',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

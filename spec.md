@@ -3,14 +3,10 @@
 ## 1. 系統概述
 旨在提供一個直觀、高端且具備層級感的操作界面，將「組織、房東、房賃、代管人員、房客」五個維度整合於單一樹狀視圖中。系統會根據登入者的角色，動態過濾其可見的資料範圍。
 
-## 2. 業務邏輯與資料權限 (Data Visibility Matrix)
+## 2. 角色權限與資料維度 (Roles & Data Visibility)
+本系統的角色定義、權限矩陣、註冊流程及停權政策，請統一參閱 [🏠 角色權限與加入流程規格 (`docs/roles.md`)](docs/roles.md)。
 
-| 角色 (Role) | 可見根節點 | 層級深度 | 權限範圍 |
-| :--- | :--- | :--- | :--- |
-| **ADMIN** | 所有 Organizations | 全展開 | SaaS 營運監控、邀請與資源管理、全平台成員治理 (全域停權)、強制調整訂閱方案 (已實作)。 |
-| **LANDLORD** | 所屬 Organization | 全展開 | 組織內資產與人員管理、指派 Manager。 |
-| **MANAGER** | 所屬 Organization | 僅顯示負責房源 & 房客 | 日常維運、查看所屬房客帳單/報修。 |
-| **TENANT** | (不採用樹狀管理) | N/A | 僅查看個人合約與帳單。 |
+系統將根據登入者的 `systemRole` (系統角色) 與 `memberRole` (組織角色) 動態過濾管理樹 (Management Tree) 的資料範圍與操作權限。
 
 ## 3. UI/UX 設計理念 (角色化一站式扁平管理)
 
@@ -36,7 +32,11 @@
         - 🔴 紅色：維修中或有緊急報修。
     - 🛠️ 代管：顯示所管轄房源數量。
     - 🔑 房客：顯示合約到期倒數。
-- **停權狀態**: 若用戶狀態為 `SUSPENDED`，節點名稱顯示刪除線並以灰色半透明呈現。
+- **治理決策輔助 (Governance Safety)**:
+    - **影響評估告知**: 當在 Command Vault 執行停權時，需根據 [`docs/roles.md`](docs/roles.md:75) 顯示預期的層級影響。
+        - *Landlord 停權*: 提示「此行為將隱藏所有旗下房源，並凍結組織下 Manager 之編輯權限」。
+        - *Manager 停權*: 提示「需重新指派受影響房源之管理權」。
+- **停權狀態視覺**: 若用戶狀態為 `SUSPENDED`，樹狀圖節點名稱顯示刪除線並以灰色半透明呈現，節點脈動燈號變為灰色熄滅狀態。
 
 ### 3.2 手機端 (Mobile/Responsive) - 觸控鑽取
 - **鑽取導航 (Drill-down Navigation)**: 點擊節點後滑入下一層級。
@@ -79,11 +79,11 @@ erDiagram
     CONTRACT ||--|| USER : "承租人 (TENANT)"
 ```
 
-## 5. UI 元件清單
-- `ManagementSidebar`: 管理樹的左側容器。
-- `CustomNodeRenderer`: 渲染不同類型節點的 icon 與文字細節。
-- `NodeActionToolbar`: 節點右鍵選單或 Hover 顯示的操作列。
-- `EntityDetailPanel`: 右側或手機底部的抽屜式詳情頁。
+## 5. UI 元件清單 (整合版)
+- `ManagementViewWrapper`: 治理中心主容器，包含情境感知之 Action Vault。
+- `ManagementTree`: 遞迴層級索引，反應實體脈動狀態。
+- `CommandVault`: 右側動態管理面板，整合 `OrgPlanManager` 與 `UserStatusToggle`。
+- `GovernanceImpactAdvisor`: 位於 Command Vault 內的風險顯示組件。
 
 ---
 
@@ -117,13 +117,21 @@ sequenceDiagram
 ```
 
 ### 6.3 角色變更與邀請邏輯 (Genesis Entry)
-- **Genesis Portal (官方邀請)**:
-    - 僅 Admin 可在發送邀請時，指定用戶為 Landlord 或 Manager 並預期指派訂閱方案權限。
-    - 支援「官方招募」機制，發起不具初始組織繫結的專家級邀請（由註冊者自行定義組織）。
-- **Admin 限制**: 不參與任何具體租賃事務，專注於全域診斷與系統參數指揮 (AIC v3)。
+詳細加入流程與邀請機制請參閱 [`docs/roles.md`](docs/roles.md#3-註冊與加入流程)。
+
+- **Genesis Portal (官方邀請)**: 僅 Admin 可發起，支援預指派訂閱方案與多組織管理專家職能。
+- **Admin 限制**: 專注於全域診斷與系統參數指揮 (AIC v3)，不參與具體租賃業務。
 
 ### 6.4 戰略參數控制 (Control Room Room - /admin/settings)
 - **Feature Flags**: 統籌 AI 租金建議、電子簽章、區塊鏈憑證等高效能模組的全局啟動。
 - **Threshold Policy**: 管理員可於介面微調「出租率警告線 (40%)」、「度電預設費率」與「Prisma 資料庫警戒容量」等關鍵數值。
 - **Infrastructure Pulse**: 視覺化監控系統基礎負載（Conn Pool, API RPM, Server Load Bitrate），確保治理決策具備數據支撐。
 - **組織擁有權**: 訂閱方案與 `Organization` 綁定。原 Landlord 可將組織轉移給其他用戶，訂閱狀態隨之轉移。
+
+## 5. 治理模組定義 (整合版)
+- `/admin/management`: **AIC 統合治理中心 (Nexus Pulse)**。
+    - **核心機制**：採用「一站式治理解析終端」設計，整合組織與用戶管理。
+    - **左側導航**：Management Tree (血緣索引)，支援動態狀態脈動點。
+    - **右側面板 (Command Vault)**：情境感知面板，根據選中節點切換管理工具（方案管理、用戶停權、資產診斷）。
+- `/admin/organizations`: (過渡期) 組織實體手速台。未來功能併入 Nexus Pulse。
+- `/admin/users`: (過渡期) 身份治理。未來功能併入 Nexus Pulse。

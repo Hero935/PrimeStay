@@ -60,9 +60,10 @@ function ManagementTreeNode({
 
   // Nexus Pulse: 根據節點狀態返回脈動點顏色
   const getPulseColor = () => {
-    if (node.status === "SUSPENDED") return "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]";
+    if (node.status === "SUSPENDED") return "bg-slate-400 shadow-none opacity-40"; // 停權節點燈號熄滅
     if (node.type === "property" && node.status === "RENTED") return "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]";
     if (node.type === "property" && node.status === "AVAILABLE") return "bg-blue-500";
+    if (node.status === "ACTIVE") return "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]";
     return "bg-slate-300";
   };
 
@@ -104,8 +105,8 @@ function ManagementTreeNode({
         </div>
 
         <span className={cn(
-          "truncate flex-1 tracking-tight",
-          node.status === "SUSPENDED" && "line-through opacity-50"
+          "truncate flex-1 tracking-tight transition-all",
+          node.status === "SUSPENDED" && "line-through opacity-30 italic text-slate-400"
         )}>
           {node.name}
         </span>

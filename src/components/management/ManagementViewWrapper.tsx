@@ -27,6 +27,9 @@ import { Input } from "@/components/ui/input";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { QuickActionDrawer } from "@/components/admin/QuickActionDrawer";
+import { OrgPlanManager } from "@/app/admin/organizations/OrgPlanManager";
+import { UserStatusToggle } from "@/app/admin/users/UserStatusToggle";
+import { AlertCircle, ShieldAlert, Ban, Info } from "lucide-react";
 
 interface ManagementNode {
   id: string;
@@ -120,6 +123,53 @@ export function ManagementViewWrapper({ initialSelectedOrgId }: { initialSelecte
       insights: "Scan Complete. All clusters operating within optimized parameters. Memory allocation adjusted."
     });
     setIsScanning(false);
+  };
+
+  /**
+   * 治理影響告知組件 (Impact Advisor)
+   * 基於 roles.md 之停權影響矩陣
+   */
+  const GovernanceImpactAdvisor = ({ node }: { node: ManagementNode }) => {
+    if (node.status !== "ACTIVE") return null;
+
+    let warnings: string[] = [];
+    if (node.type === "landlord") {
+      warnings = [
+        "此帳號停權後，所有關聯組織之房源將自動隱藏 (Private)",
+        "組織下所有成員 (Manager) 將轉為唯讀模式",
+        "租約與帳單流程將全面凍結"
+      ];
+    } else if (node.type === "manager") {
+      warnings = [
+        "負責房源之管理權將自動解編",
+        "系統將通知 Landlord 重新指派人員",
+        "待辦報修事項將回歸給組織擁有者"
+      ];
+    } else if (node.type === "tenant") {
+      warnings = [
+        "房客將無法登入系統進行報修或繳費",
+        "已產生的租約與帳單仍維持有效"
+      ];
+    }
+
+    if (warnings.length === 0) return null;
+
+    return (
+      <div className="bg-rose-500/5 border border-rose-500/20 rounded-xl p-4 mt-6 animate-in slide-in-from-top-2">
+        <div className="flex items-center gap-2 mb-3">
+          <AlertCircle className="size-3.5 text-rose-500" />
+          <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest">停權影響診斷</span>
+        </div>
+        <ul className="space-y-2">
+          {warnings.map((w, i) => (
+            <li key={i} className="flex gap-2 text-[11px] text-slate-600 leading-tight">
+               <span className="text-rose-400 font-bold">•</span>
+               {w}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
   };
 
   /**
