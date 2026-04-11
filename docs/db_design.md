@@ -7,11 +7,12 @@
 ### 👤 `User` (用戶表)
 | 欄位名稱 | 型別 | 屬性 | 說明 | 關聯性 |
 | :--- | :--- | :--- | :--- | :--- |
-| `id` | UUID | PK, Default(uuid_generate_v4()) | 唯一識別碼 | |
+| `id` | UUID | PK | 唯一識別碼 | |
 | `email` | String | Unique, Not Null | 電子郵件 (登入帳號) | |
 | `hashedPassword` | String | Not Null | 加密後的密碼 | |
 | `name` | String | | 用戶全名 | |
 | `systemRole` | Enum | ADMIN, LANDLORD, MANAGER, TENANT | 全域系統角色 (預設 TENANT) | |
+| `status` | Enum | ACTIVE, SUSPENDED | 帳號狀態 | |
 | `createdAt` | DateTime | Default(now()) | 帳號建立時間 | |
 | `updatedAt` | DateTime | UpdatedAt | 帳號更新時間 | |
 
@@ -22,10 +23,16 @@
 ### 🏢 `Organization` (組織表)
 | 欄位名稱 | 型別 | 屬性 | 說明 | 關聯性 |
 | :--- | :--- | :--- | :--- | :--- |
-| `id` | UUID | PK, Default(uuid_generate_v4()) | 組織唯一識別碼 | |
+| `id` | UUID | PK | 組織唯一識別碼 | |
 | `name` | String | Not Null | 組織名稱 (代管公司/房東工作室) | |
+| `logoUrl` | String | | 組織 Logo | |
+| `phone` | String | | 聯絡電話 | |
+| `email` | String | | 聯絡 Email | |
 | `ownerId` | UUID | FK | 擁有者 (Landlord ID) | User.id (1:N) |
+| `plan` | Enum | FREE, STARTER, PRO | 訂閱方案 | |
+| `planExpiresAt` | DateTime | | 方案到期日 | |
 | `createdAt` | DateTime | Default(now()) | 建立時間 | |
+| `updatedAt` | DateTime | UpdatedAt | 更新時間 | |
 
 ### 👥 `UserOrganization` (用戶與組織關聯表)
 | 欄位名稱 | 型別 | 屬性 | 說明 | 關聯性 |
@@ -46,15 +53,16 @@
 
 | 欄位名稱 | 型別 | 屬性 | 說明 | 關聯性 |
 | :--- | :--- | :--- | :--- | :--- |
-| `id` | UUID | PK, Default(uuid_generate_v4()) | 房源唯一識別碼 | |
+| `id` | UUID | PK | 房源唯一識別碼 | |
 | `organizationId` | UUID | FK, Not Null | 所屬組織 | Organization.id |
+| `managerId` | UUID | FK | 責任管理員 | User.id |
 | `address` | String | Not Null | **詳細地址** | |
 | `roomNumber` | String | Not Null | **房號** | |
 | `type` | String | Not Null | **類型** (如：獨立套房、分租套房、雅房) | |
 | `size` | Decimal | Not Null | **坪數** | |
 | `photos` | String[] | | 房源照片 URL 列表 | |
 | `defaultRent` | Decimal | Not Null | **預設租金** | |
-| `defaultDeposit` | Decimal | Not Null | **預設押金** (「月租金 * 2」代入「預設押金」初始值) | |
+| `defaultDeposit` | Decimal | Not Null | **預設押金** | |
 | `defaultElectricityFee`| Decimal | Default(5) | 預設電費 (元/度) | |
 | `defaultWaterFee` | Decimal | Default(0) | 預設水費 (元/月或元/度) | |
 | `defaultManagementFee`| Decimal | Default(0) | 預設管理費 | |
@@ -116,12 +124,13 @@
 ### ✉️ `Invitation` (邀請碼表)
 | 欄位名稱 | 型別 | 屬性 | 說明 | 關聯性 |
 | :--- | :--- | :--- | :--- | :--- |
-| `id` | UUID | PK, Default(uuid_generate_v4()) | | |
+| `id` | UUID | PK | | |
 | `code` | String | Unique, Not Null | 邀請代碼 (給用戶註冊用) | |
 | `inviterId` | UUID | FK | 邀請人 ID | User.id |
-| `organizationId` | UUID | FK | 目標組織 ID | Organization.id |
-| `propertyId` | UUID | FK (Nullable) | 目標綁定房源 (房客專用) | Property.id |
-| `targetRole` | Enum | LANDLORD, MANAGER, TENANT | 預計授予的角色 | |
+| `organizationId` | UUID | FK | 目標組織 ID (可選) | Organization.id |
+| `propertyId` | UUID | FK | 目標綁定房源 (房客專用) | Property.id |
+| `targetRole` | Enum | ADMIN, LANDLORD, MANAGER, TENANT | 預計授予的角色 | |
+| `targetPlan` | Enum | FREE, STARTER, PRO | 預計授予的方案 (Landlord 專用) | |
 | `isUsed` | Boolean | Default(false) | 是否已使用 | |
 | `expiresAt` | DateTime | | 過期時間 | |
 
@@ -177,3 +186,39 @@
 | `landlordReply` | String | Nullable | **房東/代管 回覆** | |
 | `createdAt` | DateTime | Default(now()) | 建立時間 | |
 | `updatedAt` | DateTime | UpdatedAt | 最後更新時間 | |
+
+---
+
+## 8. 🛡️ 系統稽核模組 (Audit Logs)
+
+### 📝 `AuditLog` (稽核日誌表)
+| 欄位名稱 | 型別 | 屬性 | 說明 | 關聯性 |
+| :--- | :--- | :--- | :--- | :--- |
+| `id` | UUID | PK | | |
+| `userId` | UUID | FK | 執行者 ID | User.id |
+| `organizationId` | UUID | FK | 所屬組織 ID | Organization.id |
+| `action` | String | Not Null | 執行動作 (如: INVITE_TENANT) | |
+| `targetType` | String | Not Null | 目標類型 (如: PROPERTY, USER) | |
+| `targetId` | String | | 目標 ID | |
+| `metadata` | JSON | | 詳細資訊 (如: 舊值、新值) | |
+| `createdAt` | DateTime | Default(now()) | 記錄時間 | |
+
+---
+
+## 9. 尚未實作或建議的部分 (Future Roadmap)
+
+### 📢 通知系統建議 (Notifications)
+建議建立 `Notification` 表以追蹤系統推送給用戶的各種通知。
+- 範例：`userId`, `type` (INFO, ALERT), `title`, `content`, `isRead`
+
+### 🏷️ 優惠與折扣模組 (Coupons/Discounts)
+若未來要推廣訂閱方案，可建立此表。
+- 範例：`code`, `discountType` (PERCENT, FIXED), `amount`, `expiresAt`
+
+### 🏦 房東收款帳戶資訊 (Payout Accounts)
+用於紀錄房東或組織的匯款帳號資訊，方便房客在帳單畫面上直接看到。
+- 範例：`organizationId`, `bankCode`, `bankAccount`, `accountName`
+
+### 💬 報修即時通訊 (Maintenance Chat)
+在報修單下建立簡單的留言板。
+- 範例：`maintenanceId`, `senderId`, `message`, `createdAt`
