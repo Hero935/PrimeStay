@@ -38,7 +38,7 @@
   - 麵包屑導航 (Breadcrumbs)。
   - 全域搜索 (Cmd+K)。
   - 通知中心 (Notifications) 與用戶選單。
-- **內容區**: 寬度限制在 `max-w-7xl`，採用多欄式佈局。
+- **內容區**: 一般頁面限制在 `max-w-7xl`，但「治理中心」或「管理數據樹」等高資訊量頁面應改用 **全寬佈局 (Full-width)** 搭配 `p-4 md:p-8`，以優化可視範圍。
 
 ### 3.2 手機端 (Mobile Layout) - 觸控便利化
 - **底部導航列 (Bottom Navigation)**:
@@ -52,10 +52,15 @@
 
 ## 4. 核心頁面設計規範
 
-### 4.0 系統管理員治理中樞 (PrimeStay AIC v3)
+### 4.0 跨角色統一大框架 (The Unified Shell)
 
-> 此模組為全平台的最高權能單位。
-> 所有的 Admin 設計細則、視覺規範與治理權則，請統一查閱：**[`docs/admin_v2_design_spec.md`](docs/admin_v2_design_spec.md)**。
+> 為了確保「一致的品牌體驗」，系統不應為不同角色開發獨立的佈局引擎。
+
+- **共享 Shell 設計**：所有角色 (Admin/Landlord/Tenant) 統一使用增強型 `DashboardShell`。
+- **功能動態切換**：
+    - **Sidebar**: 呼叫同一個 `AppSidebar` 組件，根據 Session 角色渲染對應選單，但風格（選取狀態、圖示間距）必須完全一致。
+    - **Header**: 統一包含 `SidebarTrigger`, `Separator`, 以及「動態路徑麵包屑」。
+    - **右側功能抽屜 (ActionVault)**：僅在 Admin 角色下於 Shell 中掛載「系統診斷/管理」面板。
 
 ---
 

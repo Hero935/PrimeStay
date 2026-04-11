@@ -106,10 +106,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 isActive={pathname === item.url}
                 tooltip={item.title}
                 className={cn(
-                  "py-6 transition-all",
+                  "py-6 transition-all tracking-tight",
                   pathname === item.url
                     ? "bg-indigo-50/50 text-indigo-600 font-black"
-                    : "hover:bg-slate-50"
+                    : "hover:bg-slate-50 font-bold"
                 )}
               >
                 <Link href={item.url}>

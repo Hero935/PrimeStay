@@ -5,11 +5,9 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-import { AdminAICShell } from "@/components/admin/AdminAICShell";
+import { DashboardShell } from "@/components/layout/DashboardShell";
 import { AICActionVault } from "@/components/admin/AICActionVault";
 import { AICAuditVault } from "@/components/admin/AICAuditVault";
-import { AppSidebar } from "@/components/layout/AppSidebar";
-import { SidebarProvider } from "@/components/ui/sidebar";
 
 export default async function AdminLayout({
   children,
@@ -30,22 +28,19 @@ export default async function AdminLayout({
   }
 
   return (
-    <SidebarProvider defaultOpen={true}>
-      <AdminAICShell
-        sidebar={<AppSidebar />}
-        actionVault={
-          <div className="flex flex-col h-full overflow-hidden">
-            <div className="h-1/2 overflow-y-auto custom-scrollbar">
-              <AICActionVault />
-            </div>
-            <div className="h-1/2 border-t overflow-hidden">
-              <AICAuditVault />
-            </div>
+    <DashboardShell
+      rightPanel={
+        <div className="flex flex-col h-full overflow-hidden">
+          <div className="h-1/2 overflow-y-auto custom-scrollbar p-5">
+            <AICActionVault />
           </div>
-        }
-      >
-        {children}
-      </AdminAICShell>
-    </SidebarProvider>
+          <div className="h-1/2 border-t overflow-hidden p-5">
+            <AICAuditVault />
+          </div>
+        </div>
+      }
+    >
+      {children}
+    </DashboardShell>
   );
 }

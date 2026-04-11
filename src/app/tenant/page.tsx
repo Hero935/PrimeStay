@@ -67,8 +67,8 @@ export default async function TenantDashboard() {
       </div>
 
       <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-bold tracking-tight">下午好, {session.user?.name}</h1>
-        <p className="text-muted-foreground text-sm">今天有什麼可以幫您的？</p>
+        <h1 className="text-3xl font-black text-slate-900 leading-none">下午好, {session.user?.name}</h1>
+        <p className="text-muted-foreground text-sm font-medium underline underline-offset-8 decoration-indigo-200/50">今天有什麼可以幫您的？</p>
       </div>
 
       {/* 核心應繳帳單卡片 */}

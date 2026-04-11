@@ -1,72 +1,31 @@
-# 📋 統合治理中心 (Diagnostic DNA) 實作任務報告
+# 最終任務報告 - 全站 UI/UX 深度統一化重構
 
-## 1. 任務概述
-本任務旨在將「統合治理中心」的 Diagnostic DNA 系統從前端模擬數據轉化為底層 API 驅動的真實診斷邏輯，並確保所有 UI 元素、診斷洞察與自動化操作皆符合繁體中文語系規範。
+## 任務摘要
+本任務成功解決了 Admin、Landlord 與 Tenant 三種角色間長期存在的介面風格分裂與佈局不一致問題。透過建立「單一增強型 Shell 架構」並推廣 Admin 端的優質設計語彙，實現了 PrimeStay 平台視覺與功能的高度整合。
 
-## 2. 完成子任務清單
-- **[后端] 資料來源對接**: 透過 Prisma Client 從 `Property`, `Contract`, `Maintenance` 等模型實時計算利用率 (Utilization) 與延遲度 (Latency)。
-- **[后端] API 增強**: 升級 `/api/management/tree` 接口，支援傳回實體級別的診斷指標、歷史波形 (Historical Pulse) 與 AI 診斷洞察。
-- **[前端] 數據流整合**: 修改 `ManagementViewWrapper` 與 `DiagnosticDNAPanel` 組件，捨棄 Mock Data，全面對接 API 回傳之真實數據。
-- **[功能] 全網掃描邏輯**: 實作「執行全網掃描 (Global Scan)」後端邏輯，允許一鍵重新計算全域實體之健康指標並同步至 UI。
-- **[功能] 立即修復建議**: 根據診斷數值產生相對應的繁體中文治理建議，並實作後端模擬執行邏輯。
-- **[修復] 穩定性優化**: 修正 `ManagementViewWrapper` 在節點切換時由於 `useEffect` 依賴項不當觸發的 `Maximum update depth exceeded` 錯誤。
-- **[文檔] 規格整合**: 合併現有架構文檔，產出 `docs/management_comprehensive_spec.md` 作為系統最終技術基準。
-- **[UI/UX] 工具提示增強**: 為「總覽控制台」中的核心指標（實體數、授權人、穩定度、級別）及「系統診斷 DNA」面板增加 Tooltip 說明泡泡，提升資訊透明度。
-- **[邏輯] 級別數據動態化**: 指標卡片中的「級別」現在會根據實體元數據 (metadata.plan) 動態顯示 (如 FREE, STARTER, PRO)，不再硬編碼。
-- **[權限] 角色感知 UI**: 根據登入者角色 (Role) 實作指標過濾，「授權人」僅 Admin 可見，「級別」則開放給 Admin, Landlord 與 Manager 以供管理參考。
-- **[修復] 級別繼承與 Fallback**: 修正非訂閱身分（如房客、經理）在級別欄位顯示 "PRO" 的錯誤，改為顯示 "N/A"；並確保房源、房東節點能正確從所屬組織繼承計畫資訊。
+## 關鍵技術變動
+1. **單一佈局引擎 (Unified DashboardShell)**：
+   - 全角色共用 [`src/components/layout/DashboardShell.tsx`](src/components/layout/DashboardShell.tsx)。
+   - 支援動態 Slot (`rightPanel`)：Admin 登入時自動掛載「診斷與告警面板」，其餘角色保持簡潔。
+   - 預設整合：`SidebarTrigger`、`Separator`、與「動態麵包屑」。
+2. **全站視覺細節對齊 (Typography & Styles)**：
+   - **字體細節**：將 `tracking-tight` (緊湊字距) 與 `antialiased` 提升為全站 HTML 層級標準。
+   - **標題風格**：統一主要標題字重為 `font-black` (Slate 900)，提升整體專業感與「戰略中控」的視覺重量。
+   - **側邊欄同步**：同步 [`src/components/layout/AppSidebar.tsx`](src/components/layout/AppSidebar.tsx) 的選單間距、字型權重與 Hover 效果，消除角色間的質感落差。
+3. **治理中心同步**：
+   - 確保所有角色的「資產管理樹」均具備全寬流動佈局。
+   - 統一容器內距 (`p-4 md:p-8 pt-6`) 與視覺層次。
 
-## 3. 技術點摘要
-- **利用率算法**: `(Occupied 房源數 / 總房源數) * 100`。
-- **延遲度算法**: `(Pending 維修單數 / 總房源數) * 100` (權重受限於 100%)。
-- **脈動波形 (Sparkline)**: 模擬過去 7 次掃描的數據軌跡，用於展示健康趨勢。
+## 角色 UI 表現狀態
+- **Admin**：高資訊密度、全寬視圖、具備擴充診斷面板。
+- **Landlord**：流動式資產管理、高級感字形、聚焦業務內容。
+- **Tenant**：行動優先風格、一致的 Header 導航、強化的歡迎語質感。
 
-## 4. 檔案變動摘要
-- `src/app/api/management/tree/route.ts`: 核心數據聚合邏輯。
-- `src/components/management/ManagementViewWrapper.tsx`: 前端生命週期與 API 控制邏輯。
-- `docs/management_comprehensive_spec.md`: 新增綜合規格文件。
-- `src/app/admin/management/page.tsx`: 頁面入口代碼校閱。
+## 完成事項
+- [x] 更新 [`docs/ui_design_spec.md`](docs/ui_design_spec.md) (跨角色統一規範)。
+- [x] 遷移所有 Admin/Landlord/Tenant 路由至單一 Shell 架構。
+- [x] 移除過時冗餘組件 `AdminAICShell.tsx`。
+- [x] 完成全域 CSS 與共用組件的視覺對齊。
 
-## 5. 結論
-整合資產管理中心現已具備真實數據感知能力，能準確反映平台組織與房源的運營狀態。
-## 2026-04-11 訂閱者定義與組織中心設計檢視報告
-
-### 1. 文檔更新摘要
-- **docs/roles.md**: 增補第 6 章「訂閱與級別判定設計」，明確「組織中心制 (Organization-Centric)」原則。解決房東邀請代管時，額度由房東組織承擔的邏輯。
-- **spec.md**: 強化第 6 章「收費策略」，定義「工作區中心制 (Workspace-Centric)」，確保代管人員在切換不同房東組織時，系統能正確繼承該組織的方案限制。
-
-### 2. 現有代碼符合度檢視 (src/app/admin/management)
-- **API 通訊 (`/api/management/tree`)**: **符合**。API 已正確在 Organization 節點中嵌入 `metadata.plan`。
-- **UI 渲染 (`ManagementViewWrapper`)**: **部分符合**。
-    - **優點**: 具備 Nexus Index 導航，能區分不同組織。
-    - **改善空間**: 
-        1. **方案感知度**: 雖然 `QuickActionDrawer` 可以修改方案，但選中組織時，主工作區缺乏「方案額度使用率」的直觀圖示（如：房源數 8/10）。
-        2. **影響告知**: `GovernanceImpactAdvisor` 應增加關於「降級方案導致房源隱藏」的風險提示。
-
-### 3. 後續代碼改進建議 (Next Steps)
-- [ ] 在 `ManagementViewWrapper` 的 Overview 標籤中，為 Organization 節點加入 `PlanUsageProgress` 組件。
-- [ ] 強化 `lib/billing-guard.ts` 工具，提供統一的 `canAddProperty(orgId)` 檢查函式，供 API 使用。
-
----
-
-## 選單名稱優化任務報告 (2026-04-11)
-### 任務目標
-統一房東、代管、房客登入後的左側選單名稱為 **4 個字**，並對標管理員 (Admin) 的命名風格。
-
-### 修改詳情
-- **房東 (LANDLORD)**: 
-    - `房東儀表板` -> `管理總覽`
-    - `資產關係樹` -> `治理中心`
-    - `帳單核銷` -> `帳務管理`
-    - `維修工單` -> `修繕管理`
-    - `組織設定` -> `系統設定`
-- **代管 (MANAGER)**: 
-    - `管理總覽` (維持)
-    - `負責房源` -> `房源管理`
-    - `帳單管理` -> `帳務管理`
-    - `維修處理` -> `修繕管理`
-- **房客 (TENANT)**: 
-    - `我的租務` -> `租務總覽`
-
-### 成果確認
-所有角色的導覽選單皆已改為 4 字，且術語在各角色間達成統一。
+## 結論
+PrimeStay 現在擁有一套統一的設計靈魂，無論是何種權限的用戶，都能享受到一致且高品質的數位產品體驗。

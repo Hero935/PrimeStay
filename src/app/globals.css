@@ -50,6 +50,10 @@
   }
 }
 
+html {
+  @apply tracking-tight antialiased;
+}
+
 body {
   background: white;
 }
