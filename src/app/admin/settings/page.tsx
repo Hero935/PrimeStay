@@ -38,7 +38,7 @@ export default async function AdminSettingsPage() {
   });
 
   return (
-    <div className="p-8 space-y-8 w-full max-w-7xl mx-auto">
+    <div className="p-4 md:p-8 pt-6 space-y-8 w-full">
       {/* 頁面標題與戰略定位 */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">

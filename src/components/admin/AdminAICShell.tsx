@@ -19,6 +19,16 @@ import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescri
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Separator } from "@/components/ui/separator";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 export function AdminAICShell({
   children,
@@ -26,6 +36,14 @@ export function AdminAICShell({
   actionVault,
 }: AdminAICShellProps) {
   const pathname = usePathname();
+
+  // 麵包屑邏輯 (基於 pathname 動態生成)
+  const segments = pathname.split("/").filter(Boolean);
+  const breadcrumbs = segments.map((s, i) => ({
+    label: s === "admin" ? "Admin" : s.charAt(0).toUpperCase() + s.slice(1),
+    href: "/" + segments.slice(0, i + 1).join("/"),
+    isLast: i === segments.length - 1,
+  }));
   
   const mobileNavItems = [
     { title: "管理總覽", url: "/admin", icon: LayoutDashboard },
@@ -44,11 +62,33 @@ export function AdminAICShell({
 
       {/* [B] 戰略脈動區 - Strategic Pulse (Diagnostic Core) */}
       <main className="flex-1 overflow-y-auto custom-scrollbar relative flex flex-col bg-white">
-        {/* 頂部工具欄 - 統整手機導航與桌面版面板切換 */}
-        <div className="flex items-center justify-between p-4 border-b bg-white/80 backdrop-blur-md sticky top-0 z-50">
+        {/* 頂部工具欄 - 統整手機導航與桌面版面板切換 (已對齊 Landlord 風格) */}
+        <div className="flex h-16 shrink-0 items-center justify-between px-4 border-b bg-white/80 backdrop-blur-md sticky top-0 z-50">
             <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-black text-xs">AIC</div>
-                <span className="text-xs font-bold tracking-widest text-slate-900 uppercase">Strategic</span>
+                <SidebarTrigger className="-ml-1" />
+                <Separator orientation="vertical" className="mr-2 h-4" />
+                <Breadcrumb>
+                  <BreadcrumbList>
+                    <BreadcrumbItem className="hidden md:block">
+                      <BreadcrumbLink href="/">PrimeStay</BreadcrumbLink>
+                    </BreadcrumbItem>
+                    {breadcrumbs.length > 0 && <BreadcrumbSeparator className="hidden md:block" />}
+                    {breadcrumbs.map((bc, i) => (
+                      <React.Fragment key={bc.href}>
+                        <BreadcrumbItem>
+                          {bc.isLast ? (
+                            <BreadcrumbPage>{bc.label}</BreadcrumbPage>
+                          ) : (
+                            <BreadcrumbLink href={bc.href} className="hidden md:block">
+                              {bc.label}
+                            </BreadcrumbLink>
+                          )}
+                        </BreadcrumbItem>
+                        {!bc.isLast && <BreadcrumbSeparator className="hidden md:block" />}
+                      </React.Fragment>
+                    ))}
+                  </BreadcrumbList>
+                </Breadcrumb>
             </div>
             <div className="flex items-center gap-2">
                 {/* 系統風險告警面板觸發 */}
@@ -112,7 +152,7 @@ export function AdminAICShell({
         {/* 背景效果 */}
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-slate-100/50 blur-[120px] pointer-events-none" />
         
-        <div className="relative z-10 flex-1 p-4 lg:p-6 max-w-[1400px] mx-auto w-full">
+        <div className="relative z-10 flex-1 p-4 lg:p-6 w-full h-full">
           {children}
         </div>
       </main>

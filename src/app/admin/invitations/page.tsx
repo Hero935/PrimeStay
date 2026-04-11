@@ -36,8 +36,8 @@ export default async function AdminInvitationsPage() {
   });
 
   return (
-    <div className="p-6 w-full">
-      <InvitationsList 
+    <div className="p-4 md:p-8 pt-6 w-full h-full">
+      <InvitationsList
         initialInvitations={invitations}
         organizations={organizations}
       />
