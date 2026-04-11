@@ -93,20 +93,35 @@ export function ManagementViewWrapper({
    * 當選中節點且節點標記為 hasChildren 但無資料時，自動執行後台同步
    */
   useEffect(() => {
+    // 使用局部變數鎖定當前處理的節點，避免閉包陷阱與 null 檢查問題
+    const activeNode = selectedNode;
+    if (!activeNode || !activeNode.id) return;
+
+    // 關鍵修正：解決重複點擊或第二次點擊回來的資料同步問題
+    // 檢查快取中是否存在該節點的資料（包含空陣列的情況）
+    const hasCachedData = Object.prototype.hasOwnProperty.call(cachedChildren, activeNode.id);
+    
+    // 如果節點對象目前沒有 children 屬性 (undefined)，但快取中有，則進行同步
+    // 注意：必須精確比對 undefined，以區分「未載入」與「載入後為空陣列」
+    if (activeNode.children === undefined && hasCachedData) {
+      setSelectedNode({ ...activeNode, children: cachedChildren[activeNode.id] });
+      return;
+    }
+
     async function syncChildren() {
-      if (!selectedNode || !selectedNode.id) return;
+      if (!activeNode) return;
       
-      // 已有資料或正在同步則跳過
-      if ((selectedNode.children && selectedNode.children.length > 0) || cachedChildren[selectedNode.id]) return;
+      // 已有屬性且不為 undefined（表已同步過，包含為空陣列）或快取已知則跳過
+      if (activeNode.children !== undefined || hasCachedData) return;
 
       setIsSyncingChildren(true);
       try {
-        const res = await fetch(`/api/management/tree?parentId=${selectedNode.id}&parentType=${selectedNode.type}`);
+        const res = await fetch(`/api/management/tree?parentId=${activeNode.id}&parentType=${activeNode.type}`);
         if (res.ok) {
           const data = await res.json();
-          setCachedChildren(prev => ({ ...prev, [selectedNode.id]: data }));
+          setCachedChildren(prev => ({ ...prev, [activeNode.id]: data }));
           // 同步更新當前選取節點的 children
-          setSelectedNode(prev => prev?.id === selectedNode.id ? { ...prev, children: data } : prev);
+          setSelectedNode(prev => prev?.id === activeNode.id ? { ...prev, children: data } : prev);
         }
       } catch (err) {
         console.error("Critical: Management Sync Failed", err);
@@ -116,7 +131,7 @@ export function ManagementViewWrapper({
     }
 
     syncChildren();
-  }, [selectedNode?.id, cachedChildren]);
+  }, [selectedNode, cachedChildren]); // 修正依賴項：使用整個節點對象而非僅 ID，以應對連點相同物件但物件實體不同的情境
 
   /**
    * 實作定義之圖標映射 (docs/roles.md#6.2)
