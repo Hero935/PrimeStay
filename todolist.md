@@ -19,7 +19,8 @@
     - [x] 解決 Lazy-loaded Node 在選取後右側網格暫時空白的問題。
 - [x] **驗證與文件更新**
     - [x] 建立內容規格說明於 docs/roles.md。
-    - [x] 更新 `report.md`。
+    - [x] 修復 `ManagementViewWrapper` 渲染循環 Bug (Maximum update depth exceeded)。
+    - [x] 更新 `report.md` 與任務完成進度。
     - [x] 更新 `readme.md`。
     
     ## 🚀 AIC Quick Cmd 治理增強 (待辦項)

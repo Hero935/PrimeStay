@@ -9,6 +9,7 @@
 - **[前端] 數據流整合**: 修改 `ManagementViewWrapper` 與 `DiagnosticDNAPanel` 組件，捨棄 Mock Data，全面對接 API 回傳之真實數據。
 - **[功能] 全網掃描邏輯**: 實作「執行全網掃描 (Global Scan)」後端邏輯，允許一鍵重新計算全域實體之健康指標並同步至 UI。
 - **[功能] 立即修復建議**: 根據診斷數值產生相對應的繁體中文治理建議，並實作後端模擬執行邏輯。
+- **[修復] 穩定性優化**: 修正 `ManagementViewWrapper` 在節點切換時由於 `useEffect` 依賴項不當觸發的 `Maximum update depth exceeded` 錯誤。
 - **[文檔] 規格整合**: 合併現有架構文檔，產出 `docs/management_comprehensive_spec.md` 作為系統最終技術基準。
 
 ## 3. 技術點摘要

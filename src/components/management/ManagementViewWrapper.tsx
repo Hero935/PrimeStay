@@ -124,14 +124,18 @@ export function ManagementViewWrapper({
     // 檢查快取中是否存在該節點的資料（包含空陣列的情況）
     const hasCachedData = Object.prototype.hasOwnProperty.call(cachedChildren, activeNode.id);
     
-    // 如果節點對象目前沒有 children 屬性 (undefined) 或 diagnostics，但快取中有，則進行同步
-    // 注意：必須精確比對 undefined，以區分「未載入」與「載入後為空陣列」
-    if ((activeNode.children === undefined || !activeNode.diagnostics) && hasCachedData) {
-      const cached = cachedChildren[activeNode.id] as any;
-      // 這裡需要判斷 cached 是 children 陣列還是包含 diagnostics 的物件
-      // 由於 API 回傳的是陣列，診斷數據通常附帶在節點自身
+    // 如果節點對象目前沒有 children 屬性 (undefined)，但快取中有，則進行同步
+    // 注意：只在 children 為 undefined 時同步，避免因為 diagnostics 為空而導致無窮迴圈
+    if (activeNode.children === undefined && hasCachedData) {
+      const cached = cachedChildren[activeNode.id];
       if (Array.isArray(cached)) {
-         setSelectedNode({ ...activeNode, children: cached });
+        setSelectedNode(prev => {
+          // 確保只在 ID 匹配且 children 尚未設定時更新，進一步防止競爭條件
+          if (prev?.id === activeNode.id && prev.children === undefined) {
+            return { ...prev, children: cached };
+          }
+          return prev;
+        });
       }
       return;
     }
