@@ -9,7 +9,7 @@ import { prisma } from "@/lib/prisma";
  */
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getServerSession(authOptions);
 
@@ -20,7 +20,7 @@ export async function PATCH(
 
   try {
     const { plan } = await request.json();
-    const orgId = params.id;
+    const { id: orgId } = await params;
 
     // 驗證方案有效性 (不依賴生成的 Enum，直接比對字串)
     if (!["FREE", "STARTER", "PRO"].includes(plan)) {

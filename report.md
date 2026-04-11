@@ -28,6 +28,12 @@
 ### 4. 系統穩定性 (Bug Fixes)
 *   修復了 API 中的 TypeScript 型別報錯。
 *   解決了「組織成員清單僅顯示房東」的數據缺失問題。
+### 5. 修復 Next.js 15+ 佈署構建錯誤 (Build Error Fixes)
+*   **背景**：由於 Railway 佈署時 Next.js 版本升級，導致 `params` 改為 `Promise` 而引發的型別檢查失敗。
+*   **修復範圍**：
+    *   `src/app/api/admin/organizations/[id]/plan/route.ts`：修正 `PATCH` 方法中的 `params` 處理。
+    *   `src/app/api/properties/[id]/route.ts`：針對使用 `withAuth` 裝飾器的 `PUT` 與 `DELETE` 方法進行 `await params` 修正。
+*   **影響範圍**：解決了生產環境無法構建（npm run build）的問題，並確保所有動態路由 API 符合 Next.js App Router 的非同步參數規範。
 
 ## 結論
 目前管理中心已具備完整的「深層數據視野」，無論用戶從樹狀結構的哪一層切入，右側工作區均能呈現語意正確且數據完整的成員清單，為後續的「數據報表」與「自動化任務」打下了堅實的基礎。

@@ -86,7 +86,7 @@ export async function GET(
  */
 export const PUT = withAuth(async (req: Request, { params, session }) => {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     if (!id) {
       return NextResponse.json({ error: "缺少房源 ID" }, { status: 400 });
@@ -157,7 +157,7 @@ export const PUT = withAuth(async (req: Request, { params, session }) => {
 
 export const DELETE = withAuth(async (req: Request, { params, session }) => {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // 檢查房源是否存在
     const property = await prisma.property.findUnique({
