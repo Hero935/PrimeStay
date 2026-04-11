@@ -306,7 +306,7 @@ export function ManagementTree({ onNodeSelect, initialSelectedId, initialSearchT
           <div className="relative group flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <Input
-              placeholder="搜尋名稱、Email..."
+              placeholder="搜尋名稱"
               className="pl-9 h-10 bg-muted/20 border-none rounded-md text-xs font-medium focus-visible:ring-1 focus-visible:ring-primary/20"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}

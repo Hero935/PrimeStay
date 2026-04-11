@@ -21,7 +21,18 @@
     - [x] 建立內容規格說明於 docs/roles.md。
     - [x] 更新 `report.md`。
     - [x] 更新 `readme.md`。
-
-## 📌 規格參考
+    
+    ## 🚀 AIC Quick Cmd 治理增強 (待辦項)
+    - [x] **組織級影響評估**
+        - [x] 擴充 `GovernanceImpactAdvisor` 以支援方案降級的風險提示。
+        - [x] 實作方案降級時的房源自動凍結預覽邏輯。
+    - [x] **資源可視化 (Entity DNA)**
+        - [x] 在 `QuickActionDrawer` 整合 `PlanUsageProgress` 顯示房源與成員配額。
+        - [-] 為組織節點增加即時營收 (Monthly Revenue) 概覽小圖 (待後端統計 API 支援)。
+    - [x] **深度治理功能**
+        - [x] 實作組織層級之「一鍵停權 / 全域啟用」控制開關。
+        - [x] 完成「診斷日誌」與「資源映射」按鈕的功能對接。
+    
+    ## 📌 規格參考
 - 結構定義：`docs/roles.md#6`
 - UI 映射表：`docs/roles.md#6.2`

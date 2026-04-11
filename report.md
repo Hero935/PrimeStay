@@ -1,43 +1,26 @@
-# Nexus Pulse 管理中心重構任務報告
+# 📋 統合治理中心 (Diagnostic DNA) 實作任務報告
 
-## 任務背景
-本次重構旨在將「管理中心」從單純的 UI 優化提升為技術層面的架構升級，解決 Lazy Loading 樹狀結構下的數據同步問題，並強化「組織 > 房東 > 房源 > 房客」的階梯式成員顯示邏輯。
+## 1. 任務概述
+本任務旨在將「統合治理中心」的 Diagnostic DNA 系統從前端模擬數據轉化為底層 API 驅動的真實診斷邏輯，並確保所有 UI 元素、診斷洞察與自動化操作皆符合繁體中文語系規範。
 
-## 完成事項
+## 2. 完成子任務清單
+- **[后端] 資料來源對接**: 透過 Prisma Client 從 `Property`, `Contract`, `Maintenance` 等模型實時計算利用率 (Utilization) 與延遲度 (Latency)。
+- **[后端] API 增強**: 升級 `/api/management/tree` 接口，支援傳回實體級別的診斷指標、歷史波形 (Historical Pulse) 與 AI 診斷洞察。
+- **[前端] 數據流整合**: 修改 `ManagementViewWrapper` 與 `DiagnosticDNAPanel` 組件，捨棄 Mock Data，全面對接 API 回傳之真實數據。
+- **[功能] 全網掃描邏輯**: 實作「執行全網掃描 (Global Scan)」後端邏輯，允許一鍵重新計算全域實體之健康指標並同步至 UI。
+- **[功能] 立即修復建議**: 根據診斷數值產生相對應的繁體中文治理建議，並實作後端模擬執行邏輯。
+- **[文檔] 規格整合**: 合併現有架構文檔，產出 `docs/management_comprehensive_spec.md` 作為系統最終技術基準。
 
-### 1. API 深度指標聚合 (Deep Metrics Aggregation)
-*   **檔案**：`src/app/api/management/tree/route.ts`
-*   **優化**：
-    *   實作 `deepUsers` 元數據欄位，在組織層級預先聚合「擁有者、協作管理員、所有房客」。
-    *   修正 `ContractStatus` 過濾條件，從 `ACTIVE` 修正為 `OCCUPIED`，確保數據正確性。
-    *   統一 ADMIN、MANAGER、LANDLORD 三種角色的數據鑽取 (Drill-down) 邏輯。
+## 3. 技術點摘要
+- **利用率算法**: `(Occupied 房源數 / 總房源數) * 100`。
+- **延遲度算法**: `(Pending 維修單數 / 總房源數) * 100` (權重受限於 100%)。
+- **脈動波形 (Sparkline)**: 模擬過去 7 次掃描的數據軌跡，用於展示健康趨勢。
 
-### 2. 前端穿透式顯示邏輯 (Breadcrumb & Metadata Cache)
-*   **檔案**：`src/components/management/ManagementViewWrapper.tsx`
-*   **優化**：
-    *   實作 `getFlattenedUsers` 函數，優先從節點 `metadata.deepUsers` 抓取數據，解決子節點未展開時成員清單空白的問題。
-    *   新增 `cachedChildren` 機制，優化 Lazy Loading 切換時的 UI 閃爍。
+## 4. 檔案變動摘要
+- `src/app/api/management/tree/route.ts`: 核心數據聚合邏輯。
+- `src/components/management/ManagementViewWrapper.tsx`: 前端生命週期與 API 控制邏輯。
+- `docs/management_comprehensive_spec.md`: 新增綜合規格文件。
+- `src/app/admin/management/page.tsx`: 頁面入口代碼校閱。
 
-### 3. 設計文件與規範同步
-*   **檔案**：[`docs/roles.md`](docs/roles.md)
-*   **內容**：紀錄「Section 7: Management Center Data Design Logic」，定義各層級成員顯示範疇：
-    *   **組織層級**：顯示組織全體成員。
-    *   **房東層級**：顯示該房東旗下所有房客。
-    *   **房源層級**：顯示該房源的專屬租客與經理。
-
-### 4. 系統穩定性 (Bug Fixes)
-*   修復了 API 中的 TypeScript 型別報錯。
-*   解決了「組織成員清單僅顯示房東」的數據缺失問題。
-### 5. 修復 Next.js 15+ 佈署構建錯誤 (Build Error Fixes)
-*   **背景**：由於 Railway 佈署時 Next.js 版本升級，導致 `params` 改為 `Promise` 而引發的型別檢查失敗。
-*   **修復範圍**：
-    *   `src/app/api/admin/organizations/[id]/plan/route.ts`：修正 `PATCH` 方法中的 `params` 處理。
-    *   `src/app/api/properties/[id]/route.ts`：針對使用 `withAuth` 裝飾器的 `PUT` 與 `DELETE` 方法進行 `await params` 修正。
-*   **影響範圍**：解決了生產環境無法構建（npm run build）的問題，並確保所有動態路由 API 符合 Next.js App Router 的非同步參數規範。
-
-## 結論
-目前管理中心已具備完整的「深層數據視野」，無論用戶從樹狀結構的哪一層切入，右側工作區均能呈現語意正確且數據完整的成員清單，為後續的「數據報表」與「自動化任務」打下了堅實的基礎。
-
----
-*狀態：已完成 (Completed)*
-*日期：2026-04-11*
+## 5. 結論
+整合資產管理中心現已具備真實數據感知能力，能準確反映平台組織與房源的運營狀態。

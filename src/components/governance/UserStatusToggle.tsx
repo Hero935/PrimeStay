@@ -62,8 +62,10 @@ export function UserStatusToggle({ userId, currentStatus, userName, onStatusUpda
       <Button
         variant={status === "ACTIVE" ? "destructive" : "default"}
         className={cn(
-          "w-full h-11 font-black text-[10px] uppercase tracking-widest gap-2 shadow-lg transition-all active:scale-95",
-          status === "ACTIVE" ? "bg-rose-600 hover:bg-rose-700 shadow-rose-900/10" : "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-900/10"
+          "w-full h-12 font-black text-[11px] uppercase tracking-[0.1em] gap-3 shadow-xl transition-all active:scale-[0.98] border-2",
+          status === "ACTIVE"
+            ? "bg-slate-950 border-rose-600 text-rose-500 hover:bg-rose-600 hover:text-white shadow-rose-900/20"
+            : "bg-emerald-600 border-emerald-500 text-white hover:bg-emerald-700 shadow-emerald-900/20"
         )}
         onClick={toggleStatus}
         disabled={loading}
@@ -71,11 +73,14 @@ export function UserStatusToggle({ userId, currentStatus, userName, onStatusUpda
         {loading ? (
           <Loader2 className="size-4 animate-spin" />
         ) : status === "ACTIVE" ? (
-          <Ban className="size-4" />
+          <div className="flex items-center gap-2">
+            <span className="bg-rose-600 text-white text-[8px] px-1.5 py-0.5 rounded mr-1 animate-pulse">DANGER</span>
+            <Ban className="size-4" />
+          </div>
         ) : (
           <CheckCircle2 className="size-4" />
         )}
-        {loading ? "正在同步治理狀態..." : status === "ACTIVE" ? "執行立即停權" : "恢復權限存取"}
+        {loading ? "正在同步治理狀態..." : status === "ACTIVE" ? "執行立即停權 (TERMINATE)" : "活性化 / 恢復權限存取"}
       </Button>
     </div>
   );

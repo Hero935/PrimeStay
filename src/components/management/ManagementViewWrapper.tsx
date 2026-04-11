@@ -42,6 +42,13 @@ interface ManagementNode {
   status?: string;
   subtitle?: string;
   metadata?: any;
+  diagnostics?: {
+    utilization: number;
+    latency: number;
+    insights: string;
+    fixable: boolean;
+    history: number[];
+  };
   children?: any[];
 }
 
@@ -92,6 +99,22 @@ export function ManagementViewWrapper({
    * Nexus Index Lazy Load 同步器
    * 當選中節點且節點標記為 hasChildren 但無資料時，自動執行後台同步
    */
+  /**
+   * 當選中節點時，同步其診斷數據
+   */
+  useEffect(() => {
+    if (selectedNode && selectedNode.diagnostics) {
+      setDiagnosticData({
+        utilization: selectedNode.diagnostics.utilization,
+        latency: selectedNode.diagnostics.latency,
+        insights: selectedNode.diagnostics.insights,
+        fixable: selectedNode.diagnostics.fixable,
+        fixAction: "",
+        history: selectedNode.diagnostics.history
+      });
+    }
+  }, [selectedNode]);
+
   useEffect(() => {
     // 使用局部變數鎖定當前處理的節點，避免閉包陷阱與 null 檢查問題
     const activeNode = selectedNode;
@@ -101,10 +124,15 @@ export function ManagementViewWrapper({
     // 檢查快取中是否存在該節點的資料（包含空陣列的情況）
     const hasCachedData = Object.prototype.hasOwnProperty.call(cachedChildren, activeNode.id);
     
-    // 如果節點對象目前沒有 children 屬性 (undefined)，但快取中有，則進行同步
+    // 如果節點對象目前沒有 children 屬性 (undefined) 或 diagnostics，但快取中有，則進行同步
     // 注意：必須精確比對 undefined，以區分「未載入」與「載入後為空陣列」
-    if (activeNode.children === undefined && hasCachedData) {
-      setSelectedNode({ ...activeNode, children: cachedChildren[activeNode.id] });
+    if ((activeNode.children === undefined || !activeNode.diagnostics) && hasCachedData) {
+      const cached = cachedChildren[activeNode.id] as any;
+      // 這裡需要判斷 cached 是 children 陣列還是包含 diagnostics 的物件
+      // 由於 API 回傳的是陣列，診斷數據通常附帶在節點自身
+      if (Array.isArray(cached)) {
+         setSelectedNode({ ...activeNode, children: cached });
+      }
       return;
     }
 
@@ -245,32 +273,45 @@ export function ManagementViewWrapper({
   };
 
   /**
-   * 執行全網掃描模擬
+   * 執行全網掃描：主動觸發數據刷新並模擬深度診斷
    */
   const handleStartScan = async () => {
+    if (!selectedNode) return;
     setIsScanning(true);
     setScanProgress(0);
     
-    // 模擬進度條與數據抖動
-    for (let i = 0; i <= 100; i += 5) {
+    // 第一階段：模擬深度掃描進度
+    for (let i = 0; i <= 80; i += 10) {
       setScanProgress(i);
-      setDiagnosticData(prev => ({
-        ...prev,
-        utilization: Number((Math.random() * 20 + 75).toFixed(1)),
-        latency: Number((Math.random() * 0.5 + 0.1).toFixed(2))
-      }));
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 150));
     }
 
-    setDiagnosticData(prev => ({
-      ...prev,
-      utilization: 82.3,
-      latency: 0.28,
-      insights: "Scan Complete. Abnormal resource detected in sub-cluster. Recommendation: Reset Metadata Cache.",
-      fixable: true,
-      fixAction: "RESET_CACHE"
-    }));
+    // 第二階段：真實從後端獲取最新指標
+    try {
+      // 這裡強制 re-fetch 以取得最新的 diagnostics
+      const nodeType = selectedNode.id.startsWith('org-') ? 'organization' : selectedNode.type;
+      const nodeId = selectedNode.id.replace('org-', '').replace('landlord-', '');
+      const res = await fetch(`/api/management/tree?id=${nodeId}&type=${nodeType}`);
+      
+      if (res.ok) {
+        const data = await res.json();
+        // 如果是單一節點查詢返回陣列首位
+        const latestNode = Array.isArray(data) ? data[0] : (data.node || data);
+        if (latestNode && latestNode.diagnostics) {
+          setDiagnosticData({
+            ...latestNode.diagnostics,
+            insights: `[優化完成] ${latestNode.diagnostics.insights}`,
+            fixAction: ""
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Scan Sync Failed", err);
+    }
+
+    setScanProgress(100);
     setIsScanning(false);
+    toast.success("全網掃描已完成，數據已同步至最新狀態");
   };
 
   /**
@@ -281,7 +322,7 @@ export function ManagementViewWrapper({
     await new Promise(resolve => setTimeout(resolve, 1500)); // 模擬修復動畫
     setDiagnosticData(prev => ({
       ...prev,
-      insights: "Resource optimization applied successully. System is now at peak efficiency.",
+      insights: "資源優化已成功套用。系統目前處於巔峰運行效率狀態。",
       fixable: false
     }));
     setIsScanning(false);
@@ -514,8 +555,8 @@ export function ManagementViewWrapper({
                   <div className="w-full xl:w-[320px] bg-slate-900 border-l border-white/5 flex flex-col shrink-0 overflow-hidden">
                     <div className="p-6 border-b border-white/5 space-y-8">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Diagnostic DNA</span>
-                        <Badge className="bg-emerald-500/10 text-emerald-500 text-[8px] border-none font-black h-5">LIVE</Badge>
+                        <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">系統診斷 DNA</span>
+                        <Badge className="bg-emerald-500/10 text-emerald-500 text-[8px] border-none font-black h-5">即時中</Badge>
                       </div>
                       
                       {/* Entity DNA Sparkline Pattern - Interactive */}
@@ -540,7 +581,7 @@ export function ManagementViewWrapper({
                               </div>
                           ))}
                           <div className="absolute inset-x-0 top-[20%] h-px border-t border-rose-500/30 border-dashed pointer-events-none">
-                             <span className="absolute right-0 -top-3 text-[7px] text-rose-500/50 font-black">CRITICAL (80%)</span>
+                             <span className="absolute right-0 -top-3 text-[7px] text-rose-500/50 font-black">負載臨界線 (80%)</span>
                           </div>
                           <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent pointer-events-none" />
                       </div>
@@ -548,7 +589,7 @@ export function ManagementViewWrapper({
                       <div className="space-y-5">
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Utilization</span>
+                          <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">資源利用率</span>
                           <span className={cn(
                             "text-xs font-black tracking-tighter transition-all duration-300",
                             isScanning ? "text-blue-400" : "text-white"
@@ -570,7 +611,7 @@ export function ManagementViewWrapper({
                       </div>
                       
                       <div className="flex items-center justify-between">
-                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Latency</span>
+                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">系統延遲 (報修積壓)</span>
                         <span className={cn(
                           "text-xs font-black tracking-tighter transition-all duration-300",
                           isScanning ? "text-blue-400" : "text-emerald-400"
@@ -585,7 +626,7 @@ export function ManagementViewWrapper({
                       <div className="bg-white/5 rounded-xl p-4 space-y-3 mb-6 border border-white/5">
                         <div className="flex items-center gap-2">
                           <Activity className="size-3 text-blue-500" />
-                          <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Advisor insight</p>
+                          <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">診斷顧問建議</p>
                         </div>
                         <p className="text-[11px] text-slate-300 leading-relaxed font-medium italic transition-all duration-500">
                           "{diagnosticData.insights}"

@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { OrgPlanManager } from "@/components/governance/OrgPlanManager";
 import { UserStatusToggle } from "@/components/governance/UserStatusToggle";
 import { Separator } from "@/components/ui/separator";
+import { PlanUsageProgress } from "@/components/layout/PlanUsageProgress";
 
 interface QuickActionDrawerProps {
   isOpen: boolean;
@@ -62,11 +63,29 @@ export function QuickActionDrawer({ isOpen, onOpenChange, node, onPlanUpdate, on
   /**
    * 治理影響告知組件 (Impact Advisor) - 按鈕上方提示
    */
-  const GovernanceImpactAdvisor = ({ node }: { node: any }) => {
-    if (node.status === "SUSPENDED") return null;
+  const GovernanceImpactAdvisor = ({ node, planChange }: { node: any, planChange?: string | null }) => {
+    if (node.status === "SUSPENDED" && !planChange) return null;
 
     let warnings: string[] = [];
-    if (node.type === "landlord") {
+    let title = "執行停權連鎖影響";
+
+    if (node.type === "organization" && planChange) {
+      title = "方案降級風險評估";
+      const currentPlan = (node as any).metadata?.plan || "FREE";
+      const PLAN_ORDER = ["FREE", "STARTER", "PRO"];
+      const isDowngrade = PLAN_ORDER.indexOf(planChange) < PLAN_ORDER.indexOf(currentPlan);
+
+      if (isDowngrade) {
+        const propCount = (node as any).metadata?.propertiesCount || 0;
+        const limits: Record<string, number> = { FREE: 2, STARTER: 10, PRO: 50 };
+        const nextLimit = limits[planChange] || 0;
+
+        warnings.push(`高級 AI 自動化功能 (如 AIC 調價) 將立即失效`);
+        if (propCount > nextLimit) {
+          warnings.push(`將有 ${propCount - nextLimit} 間房源被標記為「超額凍結」並從租屋網隱藏`);
+        }
+      }
+    } else if (node.type === "landlord") {
       warnings = [
         "旗下所有房源將自動隱藏 (Private)",
         "組織下所有成員 (Manager) 轉為唯讀模式",
@@ -92,7 +111,7 @@ export function QuickActionDrawer({ isOpen, onOpenChange, node, onPlanUpdate, on
       <div className="bg-rose-50 border border-rose-100 p-4 rounded-xl flex gap-3 mb-6">
         <AlertTriangle className="size-5 text-rose-500 shrink-0" />
         <div className="space-y-1">
-          <p className="text-xs font-bold text-rose-900 uppercase tracking-tighter">執行停權連鎖影響</p>
+          <p className="text-xs font-bold text-rose-900 uppercase tracking-tighter">{title}</p>
           <ul className="list-disc pl-4 space-y-0.5">
             {warnings.map((w, i) => (
               <li key={i} className="text-[10px] text-rose-700 leading-tight">
@@ -142,25 +161,67 @@ export function QuickActionDrawer({ isOpen, onOpenChange, node, onPlanUpdate, on
 
           {/* 組織治理專區 */}
           {node.type === "organization" && (
-            <div className="space-y-3 animate-in fade-in duration-500">
-               <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                 <Zap className="size-3 text-amber-500" /> 訂閱方案管理
-               </h4>
-               <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex items-center justify-between">
-                  <div>
-                    <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">當前部署方案</p>
-                    <p className="text-sm font-black text-indigo-600 truncate max-w-[120px]">{internalPlan}</p>
+            <div className="space-y-6 animate-in fade-in duration-500">
+               {/* 方案管理 */}
+               <div className="space-y-3">
+                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <Zap className="size-3 text-amber-500" /> 訂閱方案管理
+                  </h4>
+                  <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex items-center justify-between shadow-sm">
+                      <div>
+                        <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">當前部署方案</p>
+                        <p className="text-sm font-black text-indigo-600 truncate max-w-[120px]">{internalPlan}</p>
+                      </div>
+                      <OrgPlanManager
+                        orgId={(node as any).originalId || node.id}
+                        currentPlan={internalPlan || "FREE"}
+                        orgName={node.name}
+                        onPlanUpdate={(newPlan) => {
+                          setInternalPlan(newPlan);
+                          onPlanUpdate?.(newPlan);
+                        }}
+                      />
                   </div>
-                  <OrgPlanManager
-                    orgId={node.id}
-                    currentPlan={internalPlan || "FREE"}
-                    orgName={node.name}
-                    onPlanUpdate={(newPlan) => {
-                      setInternalPlan(newPlan);
-                      onPlanUpdate?.(newPlan);
-                    }}
-                  />
                </div>
+
+               {/* 資源可視化 DNA */}
+               <div className="space-y-3">
+                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <Zap className="size-3 text-blue-500" /> Entity DNA (資源監測)
+                  </h4>
+                  <div className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm">
+                    <PlanUsageProgress
+                      manualData={{
+                        plan: internalPlan || "FREE",
+                        propertyCount: (node as any).metadata?.propertiesCount || 0
+                      }}
+                    />
+                  </div>
+               </div>
+
+               {/* 組織級安全治理 */}
+               <div className="space-y-3">
+                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 text-rose-500">
+                    <ShieldAlert className="size-3" /> 組織全域停權控制 (Kill-Switch)
+                  </h4>
+                  <div className="bg-rose-50/30 border border-rose-100 rounded-xl p-4">
+                    <UserStatusToggle
+                      userId={(node as any).originalId || node.id}
+                      currentStatus={internalStatus || "ACTIVE"}
+                      userName={node.name}
+                      onStatusUpdate={(newStatus) => {
+                        setInternalStatus(newStatus);
+                        onStatusUpdate?.(newStatus);
+                      }}
+                    />
+                    <p className="text-[9px] text-rose-400 font-medium mt-3 italic">
+                      注意：停權組織將同步凍結旗下所有房東帳號與對外展示之房源。
+                    </p>
+                  </div>
+               </div>
+
+               {/* 治理影響告知 (Impact Advisor) - 針對方案降級 */}
+               <GovernanceImpactAdvisor node={node} planChange={internalPlan} />
             </div>
           )}
 
@@ -238,13 +299,21 @@ export function QuickActionDrawer({ isOpen, onOpenChange, node, onPlanUpdate, on
           <div className="space-y-3 pb-4">
              <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 text-blue-500">進階分析工具</p>
              <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" className="h-20 flex-col gap-2 font-black text-[10px] uppercase tracking-widest bg-white hover:bg-slate-50 border-slate-200 transition-all hover:border-blue-500/30 group">
+                <Button
+                  variant="outline"
+                  className="h-20 flex-col gap-2 font-black text-[10px] uppercase tracking-widest bg-white hover:bg-slate-50 border-slate-200 transition-all hover:border-blue-500/30 group"
+                  onClick={() => window.location.href = `/admin/audit-logs?targetId=${node.id}`}
+                >
                   <div className="size-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-all">
                     <AlertCircle className="size-4" />
                   </div>
                   診斷日誌
                 </Button>
-                <Button variant="outline" className="h-20 flex-col gap-2 font-black text-[10px] uppercase tracking-widest bg-white hover:bg-slate-50 border-slate-200 transition-all hover:border-amber-500/30 group">
+                <Button
+                  variant="outline"
+                  className="h-20 flex-col gap-2 font-black text-[10px] uppercase tracking-widest bg-white hover:bg-slate-50 border-slate-200 transition-all hover:border-amber-500/30 group"
+                  onClick={() => alert("資源拓樸映射功能正在開發中，預計將使用 Nexus Map 繪製關聯圖。")}
+                >
                   <div className="size-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500 group-hover:bg-amber-500 group-hover:text-white transition-all">
                     <Zap className="size-4" />
                   </div>
