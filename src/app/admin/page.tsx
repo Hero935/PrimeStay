@@ -87,8 +87,8 @@ export default async function AdminDashboardPage() {
                 <Building2 className="w-4 h-4 text-slate-400" />
                 <h2 className="text-[10px] font-bold uppercase tracking-wider text-slate-400">最近組織節點動態</h2>
             </div>
-            <Link href="/admin/organizations" className="group flex items-center gap-1 text-[10px] font-medium text-slate-500 hover:text-indigo-600 transition-colors bg-white lg:bg-transparent p-1.5 lg:p-0 rounded-md border lg:border-none shadow-sm lg:shadow-none">
-                查看組織項目 <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+            <Link href="/admin/management" className="group flex items-center gap-1 text-[10px] font-medium text-slate-500 hover:text-indigo-600 transition-colors bg-white lg:bg-transparent p-1.5 lg:p-0 rounded-md border lg:border-none shadow-sm lg:shadow-none">
+                治理中心入口 <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
             </Link>
         </div>
 
@@ -100,7 +100,7 @@ export default async function AdminDashboardPage() {
             const isAlert = total > 0 && rate < 40;
 
             return (
-              <Link href={`/admin/organizations?search=${encodeURIComponent(org.name)}`} key={org.id}>
+              <Link href={`/admin/management?search=${encodeURIComponent(org.name)}`} key={org.id}>
                 <Card className={cn(
                     "bg-white border-slate-100 p-4 hover:border-indigo-500/50 transition-all cursor-pointer group shadow-sm",
                     isAlert && "hover:border-amber-500/50"

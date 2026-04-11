@@ -18,8 +18,8 @@ export function AICActionVault() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery) return;
-    // 導向用戶管理頁面並帶入搜尋參數
-    window.location.href = `/admin/users?search=${encodeURIComponent(searchQuery)}`;
+    // 導向治理中心並帶入搜尋參數
+    window.location.href = `/admin/management?search=${encodeURIComponent(searchQuery)}`;
   };
 
   const [stats, setStats] = useState<any>(null);

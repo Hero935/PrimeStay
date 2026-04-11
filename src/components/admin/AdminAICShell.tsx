@@ -30,9 +30,7 @@ export function AdminAICShell({
   
   const mobileNavItems = [
     { title: "管理總覽", url: "/admin", icon: LayoutDashboard },
-    { title: "整合視圖", url: "/admin/management", icon: ShieldCheck },
-    { title: "組織管理", url: "/admin/organizations", icon: Building2 },
-    { title: "用戶管理", url: "/admin/users", icon: Users },
+    { title: "治理中心", url: "/admin/management", icon: ShieldCheck },
     { title: "邀請系統", url: "/admin/invitations", icon: Mail },
     { title: "系統設定", url: "/admin/settings", icon: Settings },
   ];

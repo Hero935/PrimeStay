@@ -21,8 +21,8 @@ import {
   AlertCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { OrgPlanManager } from "@/app/admin/organizations/OrgPlanManager";
-import { UserStatusToggle } from "@/app/admin/users/UserStatusToggle";
+import { OrgPlanManager } from "@/components/governance/OrgPlanManager";
+import { UserStatusToggle } from "@/components/governance/UserStatusToggle";
 import { Separator } from "@/components/ui/separator";
 
 interface QuickActionDrawerProps {

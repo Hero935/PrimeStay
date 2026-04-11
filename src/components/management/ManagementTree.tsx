@@ -27,6 +27,7 @@ interface ManagementNode {
 interface ManagementTreeProps {
   onNodeSelect: (node: ManagementNode) => void;
   initialSelectedId?: string;
+  initialSearchTerm?: string;
 }
 
 /**
@@ -144,10 +145,10 @@ function ManagementTreeNode({
  * 深度一致性修正：
  * 實作真正的遞迴樹狀結構，支援多層級展開與選取。
  */
-export function ManagementTree({ onNodeSelect, initialSelectedId }: ManagementTreeProps) {
+export function ManagementTree({ onNodeSelect, initialSelectedId, initialSearchTerm }: ManagementTreeProps) {
   const [nodes, setNodes] = useState<ManagementNode[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(initialSearchTerm || "");
   const [selectedIndex, setSelectedIndex] = useState<string | null>(null);
 
   // 當 initialSelectedId 變動時同步選取狀態
@@ -156,6 +157,13 @@ export function ManagementTree({ onNodeSelect, initialSelectedId }: ManagementTr
       setSelectedIndex(initialSelectedId);
     }
   }, [initialSelectedId]);
+
+  // 當 initialSearchTerm 變動時同步搜尋關鍵字
+  useEffect(() => {
+    if (initialSearchTerm) {
+      setSearchTerm(initialSearchTerm);
+    }
+  }, [initialSearchTerm]);
 
   useEffect(() => {
     async function fetchNodes() {

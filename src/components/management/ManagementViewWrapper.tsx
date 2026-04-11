@@ -27,8 +27,8 @@ import { Input } from "@/components/ui/input";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { QuickActionDrawer } from "@/components/admin/QuickActionDrawer";
-import { OrgPlanManager } from "@/app/admin/organizations/OrgPlanManager";
-import { UserStatusToggle } from "@/app/admin/users/UserStatusToggle";
+import { OrgPlanManager } from "@/components/governance/OrgPlanManager";
+import { UserStatusToggle } from "@/components/governance/UserStatusToggle";
 import { AlertCircle, ShieldAlert, Ban, Info } from "lucide-react";
 
 interface ManagementNode {
@@ -56,7 +56,13 @@ interface FlattenedUser {
  * 2. 核心工作區採用多欄佈局，指標與 DNA 診斷即時呈現。
  * 3. 強化導航血緣感知 (Nexus Index Breadcrumbs)。
  */
-export function ManagementViewWrapper({ initialSelectedOrgId }: { initialSelectedOrgId?: string }) {
+export function ManagementViewWrapper({
+  initialSelectedOrgId,
+  initialSearchTerm
+}: {
+  initialSelectedOrgId?: string;
+  initialSearchTerm?: string;
+}) {
   const [selectedNode, setSelectedNode] = useState<ManagementNode | null>(null);
   const [isQuickActionOpen, setIsQuickActionOpen] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
@@ -480,6 +486,7 @@ export function ManagementViewWrapper({ initialSelectedOrgId }: { initialSelecte
         <ManagementTree
           onNodeSelect={setSelectedNode}
           initialSelectedId={initialSelectedOrgId}
+          initialSearchTerm={initialSearchTerm}
         />
       </div>
 
