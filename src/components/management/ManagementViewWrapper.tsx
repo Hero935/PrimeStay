@@ -69,6 +69,8 @@ export function ManagementViewWrapper({
 }) {
   const [selectedNode, setSelectedNode] = useState<ManagementNode | null>(null);
   const [isSyncingChildren, setIsSyncingChildren] = useState(false);
+  // 新增：緩存子節點資料，避免重複 Fetch 並確保 UI 即時顯示
+  const [cachedChildren, setCachedChildren] = useState<Record<string, any[]>>({});
   const [isQuickActionOpen, setIsQuickActionOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState(externalSearch || "");
   const [treeKey, setTreeKey] = useState(0);
@@ -85,6 +87,36 @@ export function ManagementViewWrapper({
     history: [40, 70, 45, 90, 65, 80, 50, 95, 40, 60, 75, 45, 85, 55, 70]
   });
   const isMobile = useIsMobile();
+
+  /**
+   * Nexus Index Lazy Load 同步器
+   * 當選中節點且節點標記為 hasChildren 但無資料時，自動執行後台同步
+   */
+  useEffect(() => {
+    async function syncChildren() {
+      if (!selectedNode || !selectedNode.id) return;
+      
+      // 已有資料或正在同步則跳過
+      if ((selectedNode.children && selectedNode.children.length > 0) || cachedChildren[selectedNode.id]) return;
+
+      setIsSyncingChildren(true);
+      try {
+        const res = await fetch(`/api/management/tree?parentId=${selectedNode.id}&parentType=${selectedNode.type}`);
+        if (res.ok) {
+          const data = await res.json();
+          setCachedChildren(prev => ({ ...prev, [selectedNode.id]: data }));
+          // 同步更新當前選取節點的 children
+          setSelectedNode(prev => prev?.id === selectedNode.id ? { ...prev, children: data } : prev);
+        }
+      } catch (err) {
+        console.error("Critical: Management Sync Failed", err);
+      } finally {
+        setIsSyncingChildren(false);
+      }
+    }
+
+    syncChildren();
+  }, [selectedNode?.id, cachedChildren]);
 
   /**
    * 實作定義之圖標映射 (docs/roles.md#6.2)
@@ -390,10 +422,20 @@ export function ManagementViewWrapper({
                     <div className="bg-white rounded-xl border shadow-sm p-6 space-y-4">
                       <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.25em] flex items-center gap-2">
                          <MapPin className="size-4 text-blue-600" />
-                         {node.type === "organization" ? "下轄房東清單" : node.type === "landlord" ? "旗下房源網格" : "關聯子實體"} (高密度)
+                         {node.type === "organization" && "下轄房東清單"}
+                         {node.type === "landlord" && "旗下房源網格"}
+                         {node.type === "property" && "房源成員清單"}
+                         {(!["organization", "landlord", "property"].includes(node.type)) && "關聯子實體"}
+                         {isSyncingChildren ? " (同步中...)" : " (高密度)"}
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {node.children?.slice(0, 6).map((item: any) => (
+                        {isSyncingChildren && (
+                          <div className="col-span-2 py-8 flex flex-col items-center justify-center opacity-40">
+                             <Loader2 className="size-6 animate-spin mb-2" />
+                             <p className="text-[9px] font-black uppercase tracking-widest">正在提取子實體 DNA...</p>
+                          </div>
+                        )}
+                        {!isSyncingChildren && node.children?.slice(0, 6).map((item: any) => (
                           <div key={item.id} className="group p-4 bg-slate-50/50 hover:bg-white rounded-xl border border-transparent hover:border-primary/10 hover:shadow-md transition-all cursor-pointer flex items-center gap-4">
                             <div className="size-10 bg-white rounded-lg flex items-center justify-center border shadow-sm text-slate-400 group-hover:bg-primary group-hover:text-white transition-all">
                               {getEntityIcon(item.type, "size-5")}
