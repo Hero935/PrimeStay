@@ -11,34 +11,52 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Settings2, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface OrgPlanManagerProps {
   orgId: string;
   currentPlan: string;
   orgName: string;
+  onPlanUpdate?: (newPlan: string) => void;
 }
 
 const PLANS = [
-  { id: "FREE", name: "免費方案", color: "bg-slate-500" },
-  { id: "STARTER", name: "開發者方案", color: "bg-blue-500" },
-  { id: "PRO", name: "專業版", color: "bg-indigo-600" },
-  { id: "ENTERPRISE", name: "企業旗艦", color: "bg-purple-600" },
+  { id: "FREE", name: "Free (免費)", color: "bg-slate-500" },
+  { id: "STARTER", name: "Starter (入門)", color: "bg-blue-500" },
+  { id: "PRO", name: "Pro (專業)", color: "bg-indigo-600" },
 ];
 
 /**
  * 組織訂閱方案管理組件
  * 提供方案切換與即時狀態更新
  */
-export function OrgPlanManager({ orgId, currentPlan, orgName }: OrgPlanManagerProps) {
+export function OrgPlanManager({ orgId, currentPlan, orgName, onPlanUpdate }: OrgPlanManagerProps) {
   const [loading, setLoading] = useState(false);
   const [activePlan, setActivePlan] = useState(currentPlan);
 
   const handlePlanChange = async (planId: string) => {
+    if (planId === activePlan) return;
+    
     setLoading(true);
-    // 模擬 API 調用
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    setActivePlan(planId);
-    setLoading(false);
+    try {
+      const res = await fetch("/api/management/plan", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orgId, planId })
+      });
+
+      if (res.ok) {
+        setActivePlan(planId);
+        toast.success(`${orgName} 方案已成功變更為 ${planId}`);
+        if (onPlanUpdate) onPlanUpdate(planId);
+      } else {
+        toast.error("變更方案失敗");
+      }
+    } catch (err) {
+      toast.error("系統發生錯誤");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

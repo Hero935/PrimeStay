@@ -56,3 +56,44 @@ export function withAuth(
     }
   };
 }
+
+/**
+ * 資源所有權稽核工具
+ * 用於驗證發起請求的用戶是否對該資源 (組織/房源) 具備合法操作權限
+ */
+export const OwnershipGuard = {
+  /**
+   * 驗證用戶是否為組織擁有者 (Landlord)
+   */
+  async belongsToOrg(userId: string, organizationId: string) {
+    const org = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { ownerId: true }
+    });
+    return org?.ownerId === userId;
+  },
+
+  /**
+   * 驗證房源是否屬於用戶管理的組織
+   */
+  async canManageProperty(userId: string, propertyId: string) {
+    const property = await prisma.property.findUnique({
+      where: { id: propertyId },
+      include: {
+        organization: {
+          select: { ownerId: true }
+        }
+      }
+    });
+
+    if (!property) return false;
+
+    // 1. 如果是用戶直接管理的房源 (Manager)
+    if (property.managerId === userId) return true;
+
+    // 2. 如果是房源所屬組織的擁有者 (Landlord)
+    if (property.organization.ownerId === userId) return true;
+
+    return false;
+  }
+};

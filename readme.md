@@ -24,9 +24,11 @@ c:\Scorpio\projects\PrimeStay
 ## 使用技術
 - **Frontend**: Next.js 14 (App Router), Tailwind CSS
 - **UI Architecture**: shadcn/ui (Radix UI), Lucide Icons
-- **Data Visualization**: Recharts (用於戰略熱圖與脈動圖)
-- **State Management**: React Hooks (useState, useMemo)
-- **Security**: NextAuth.js (角色基於系統權法防護)
+- **Command & Control**: 全域指令列 (Cmd+K) 整合
+- **Data Visualization**: Recharts (用於戰略熱圖)、互動式 Sparklines、預測性警戒組件
+- **State Management**: React Hooks + LocalStorage (用於 Pinned Nodes 持久化)
+- **Security**: OwnershipGuard (後端 API 所有權驗證機制)
+- **Performance**: Layered Lazy Loading (節點分層加載)
 - **Database**: PostgreSQL with Prisma ORM
 
 ## 檔案清單說明
@@ -37,8 +39,10 @@ c:\Scorpio\projects\PrimeStay
 | `src/components/admin/AICActionVault.tsx` | 右側命令與告警面板，整合統一邀請系統。 |
 | `src/app/admin/layout.tsx` | Admin 路由層級配置，包含側邊欄預設狀態設置。 |
 | `src/app/admin/management/page.tsx` | Nexus 整合資產索引 (Nexus Index) 入口。 |
-| `src/components/management/ManagementTree.tsx` | 遞迴式管理樹，支援角色權限過濾與實體狀態 (SUSPENDED) 脈動視覺。 |
-| `src/components/management/ManagementViewWrapper.tsx` | AIC 指揮中心主容器，實作情境感知 Command Vault 與治理影響諮詢系統。 |
+| `src/components/management/ManagementTree.tsx` | 遞迴式管理樹，支援 **Pin 釘選**、狀態過濾器與分層延遲加載。 |
+| `src/components/management/ManagementViewWrapper.tsx` | AIC 指揮中心主容器，整合 **診斷 DNA 一鍵修復**、互動式負載圖表。 |
+| `src/components/management/CommandPalette.tsx` | 全域導航搜尋引擎，支援 Cmd+K 快速定位與跳轉。 |
+| `src/app/api/management/batch/route.ts` | 批次治理 API，支援成員狀態的批量變更 (停權/恢復)。 |
 | `docs/management_integration_spec.md` | 用於說明管理功能統合後的設計規範與 UML 操作流程。 |
 
 ## 安裝及執行方式

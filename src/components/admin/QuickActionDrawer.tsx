@@ -18,7 +18,9 @@ import {
   CheckCircle2,
   AlertTriangle,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Home,
+  Settings2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { OrgPlanManager } from "@/components/governance/OrgPlanManager";
@@ -34,14 +36,26 @@ interface QuickActionDrawerProps {
     type: string;
     status?: string;
   } | null;
+  onPlanUpdate?: (newPlan: string) => void;
+  onStatusUpdate?: (newStatus: string) => void;
 }
 
 /**
  * 快速管理側拉面板
  * 用於對選中實體進行停權、啟動或方案調整。
  */
-export function QuickActionDrawer({ isOpen, onOpenChange, node }: QuickActionDrawerProps) {
+export function QuickActionDrawer({ isOpen, onOpenChange, node, onPlanUpdate, onStatusUpdate }: QuickActionDrawerProps) {
   const [loading, setLoading] = useState(false);
+  const [internalPlan, setInternalPlan] = useState<string | null>(null);
+  const [internalStatus, setInternalStatus] = useState<string | null>(null);
+
+  // 當 node 改變時重置內部狀態
+  React.useEffect(() => {
+    if (node) {
+      setInternalPlan((node as any).metadata?.plan || "FREE");
+      setInternalStatus((node as any).status || "ACTIVE");
+    }
+  }, [node]);
 
   if (!node) return null;
 
@@ -115,9 +129,9 @@ export function QuickActionDrawer({ isOpen, onOpenChange, node }: QuickActionDra
                </Badge>
                <Badge variant="outline" className={cn(
                  "font-black text-[9px] px-2 h-5 tracking-widest",
-                 node.status === "SUSPENDED" ? "text-red-500 border-red-200 bg-red-50" : "text-emerald-600 border-emerald-200 bg-emerald-50"
+                 internalStatus === "SUSPENDED" ? "text-red-500 border-red-200 bg-red-50" : "text-emerald-600 border-emerald-200 bg-emerald-50"
                )}>
-                 {node.status || "ACTIVE"}
+                 {internalStatus || "ACTIVE"}
                </Badge>
             </div>
             <h3 className="text-lg font-black text-slate-900 truncate mb-1">{node.name}</h3>
@@ -135,13 +149,61 @@ export function QuickActionDrawer({ isOpen, onOpenChange, node }: QuickActionDra
                <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex items-center justify-between">
                   <div>
                     <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">當前部署方案</p>
-                    <p className="text-sm font-black text-indigo-600 truncate max-w-[120px]">{(node as any).metadata?.plan || "FREE"}</p>
+                    <p className="text-sm font-black text-indigo-600 truncate max-w-[120px]">{internalPlan}</p>
                   </div>
                   <OrgPlanManager
                     orgId={node.id}
-                    currentPlan={(node as any).metadata?.plan || "FREE"}
+                    currentPlan={internalPlan || "FREE"}
                     orgName={node.name}
+                    onPlanUpdate={(newPlan) => {
+                      setInternalPlan(newPlan);
+                      onPlanUpdate?.(newPlan);
+                    }}
                   />
+               </div>
+            </div>
+          )}
+
+          {/* 房源管理專區 */}
+          {node.type === "property" && (
+            <div className="space-y-4 animate-in fade-in duration-500">
+               <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 text-blue-600">
+                 <Home className="size-3" /> 房源資產狀態配置
+               </h4>
+               <div className="grid grid-cols-1 gap-3">
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center justify-between">
+                    <div>
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">目前狀態</p>
+                      <p className="text-xs font-bold text-slate-700">{node.status || "AVAILABLE"}</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 text-[9px] font-black uppercase tracking-widest"
+                      onClick={() => alert("狀態變更模組 (AVAILABLE / RENTED / MAINTENANCE) 開發中")}
+                    >
+                      變更狀態
+                    </Button>
+                  </div>
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-white rounded-lg border shadow-sm">
+                        <Settings2 className="size-3 text-slate-500" />
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">代管指派</p>
+                        <p className="text-xs font-bold text-slate-700">尚未指派特殊經理</p>
+                      </div>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 text-[9px] font-black uppercase tracking-widest text-primary"
+                      onClick={() => alert("經理指派模組開發中")}
+                    >
+                      重新指派
+                    </Button>
+                  </div>
                </div>
             </div>
           )}
@@ -155,8 +217,12 @@ export function QuickActionDrawer({ isOpen, onOpenChange, node }: QuickActionDra
                <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-5">
                   <UserStatusToggle
                     userId={node.id}
-                    currentStatus={node.status || "ACTIVE"}
+                    currentStatus={internalStatus || "ACTIVE"}
                     userName={node.name}
+                    onStatusUpdate={(newStatus) => {
+                      setInternalStatus(newStatus);
+                      onStatusUpdate?.(newStatus);
+                    }}
                   />
                   <p className="text-[9px] text-slate-400 font-medium mt-4 leading-relaxed italic border-t pt-3">
                     戰略提示：停權動作將由 AIC 全域派發，立即凍結所有相關數位資產存取權。

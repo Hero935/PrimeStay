@@ -10,23 +10,41 @@ interface UserStatusToggleProps {
   userId: string;
   currentStatus: string;
   userName: string;
+  onStatusUpdate?: (newStatus: string) => void;
 }
 
 /**
  * 用戶治理狀態切換組件
  * 用於執行停權、啟動等高風險權限操作
  */
-export function UserStatusToggle({ userId, currentStatus, userName }: UserStatusToggleProps) {
+export function UserStatusToggle({ userId, currentStatus, userName, onStatusUpdate }: UserStatusToggleProps) {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState(currentStatus);
 
   const toggleStatus = async () => {
-    setLoading(true);
-    // 模擬治理 API 調用與資產鎖定流程
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-    const nextStatus = status === "ACTIVE" ? "SUSPENDED" : "ACTIVE";
-    setStatus(nextStatus);
-    setLoading(false);
+    try {
+      setLoading(true);
+      const action = status === "ACTIVE" ? "SUSPEND" : "ACTIVATE";
+      
+      const response = await fetch("/api/management/batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userIds: [userId],
+          action
+        })
+      });
+
+      if (!response.ok) throw new Error("Failed to update status");
+
+      const nextStatus = status === "ACTIVE" ? "SUSPENDED" : "ACTIVE";
+      setStatus(nextStatus);
+      onStatusUpdate?.(nextStatus);
+    } catch (error) {
+      console.error("Status update failed:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
