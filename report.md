@@ -29,3 +29,22 @@
 
 ## 5. 結論
 整合資產管理中心現已具備真實數據感知能力，能準確反映平台組織與房源的運營狀態。
+## 2026-04-11 訂閱者定義與組織中心設計檢視報告
+
+### 1. 文檔更新摘要
+- **docs/roles.md**: 增補第 6 章「訂閱與級別判定設計」，明確「組織中心制 (Organization-Centric)」原則。解決房東邀請代管時，額度由房東組織承擔的邏輯。
+- **spec.md**: 強化第 6 章「收費策略」，定義「工作區中心制 (Workspace-Centric)」，確保代管人員在切換不同房東組織時，系統能正確繼承該組織的方案限制。
+
+### 2. 現有代碼符合度檢視 (src/app/admin/management)
+- **API 通訊 (`/api/management/tree`)**: **符合**。API 已正確在 Organization 節點中嵌入 `metadata.plan`。
+- **UI 渲染 (`ManagementViewWrapper`)**: **部分符合**。
+    - **優點**: 具備 Nexus Index 導航，能區分不同組織。
+    - **改善空間**: 
+        1. **方案感知度**: 雖然 `QuickActionDrawer` 可以修改方案，但選中組織時，主工作區缺乏「方案額度使用率」的直觀圖示（如：房源數 8/10）。
+        2. **影響告知**: `GovernanceImpactAdvisor` 應增加關於「降級方案導致房源隱藏」的風險提示。
+
+### 3. 後續代碼改進建議 (Next Steps)
+- [ ] 在 `ManagementViewWrapper` 的 Overview 標籤中，為 Organization 節點加入 `PlanUsageProgress` 組件。
+- [ ] 強化 `lib/billing-guard.ts` 工具，提供統一的 `canAddProperty(orgId)` 檢查函式，供 API 使用。
+
+---
